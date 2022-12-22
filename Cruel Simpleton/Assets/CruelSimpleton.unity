@@ -372,6 +372,48 @@ MonoBehaviour:
     type: 2}
   m_PrefabInternal: {fileID: 1057970854}
   m_Script: {fileID: -1675560866, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
+--- !u!1001 &1157275020
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4699998568161774, guid: 6682e200f66de1e4883de4ea5f8f3f19, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: -0.2353
+      objectReference: {fileID: 0}
+    - target: {fileID: 4699998568161774, guid: 6682e200f66de1e4883de4ea5f8f3f19, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4699998568161774, guid: 6682e200f66de1e4883de4ea5f8f3f19, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4699998568161774, guid: 6682e200f66de1e4883de4ea5f8f3f19, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4699998568161774, guid: 6682e200f66de1e4883de4ea5f8f3f19, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4699998568161774, guid: 6682e200f66de1e4883de4ea5f8f3f19, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4699998568161774, guid: 6682e200f66de1e4883de4ea5f8f3f19, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4699998568161774, guid: 6682e200f66de1e4883de4ea5f8f3f19, type: 2}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: 6682e200f66de1e4883de4ea5f8f3f19, type: 2}
+  m_IsPrefabParent: 0
 --- !u!114 &1367581830 stripped
 MonoBehaviour:
   m_PrefabParentObject: {fileID: 114410878400956250, guid: f7f179b89aa925640b02f5485bf4c005,

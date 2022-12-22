@@ -79,6 +79,8 @@ public class CruelSimpleton : MonoBehaviour {
 
    }
 
+    #region Rules
+
     private bool Unicorn()
     {
         //if there are 2 batteries in 2 holders, 2 indicators, a DVI, RJ-45, PS2, and RCA ports on the same port plate, and the serial number contains a "U"
@@ -124,7 +126,7 @@ public class CruelSimpleton : MonoBehaviour {
     private bool Rule5()
     {
         //there is a simpleton
-        return Bomb.GetModuleNames().Where(name => name.ToUpper() == "SIMPLEBUTTON").Any();
+        return Bomb.GetModuleNames().Where(name => name.ToUpper() == "THE SIMPLETON").Any();
     }
 
     private bool Rule6()
@@ -159,6 +161,13 @@ public class CruelSimpleton : MonoBehaviour {
     private bool Rule9()
     {
         return !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7() && !rule8;
+    }
+
+    #endregion
+
+    private void TestButton()
+    { 
+    
     }
 
 
