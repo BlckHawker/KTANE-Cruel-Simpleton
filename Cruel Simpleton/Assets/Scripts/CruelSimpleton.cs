@@ -347,11 +347,12 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void SectionPress(KMSelectable section)
     {
-
+        
         string sectionName = SectionToName(section);
         int sectionNum = SectionToInt(section);
 
-        bool rule7Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && Rule7();
+        bool rule4Active = !rule1 && !rule2 && !rule3 && rule4;
+        bool rule7Active = !rule4Active && !rule5 && !Rule6() && Rule7();
         bool rule8Active = !rule7Active && rule8;
 
         Debug.Log(sectionName + " section pressed");
@@ -370,12 +371,14 @@ public class CruelSimpleton : MonoBehaviour {
             {
                 GetComponent<KMBombModule>().HandlePass();
                 ModuleSolved = true;
+                return;
             }
 
             else
             {
                 GetComponent<KMBombModule>().HandleStrike();
                 Debug.Log("Strike! Pressed section " + sectionNum + " insetead of section " + rule7Answer);
+                return;
             }
         }
 
@@ -408,7 +411,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
 
 
-        if (Rule9())
+        if (rule4Active || Rule9())
         {
             if (sectionNum != 4)
             {
@@ -421,7 +424,8 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void StatusLightPress()
     {
-        bool rule8Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7() && rule8;
+        bool rule4Active = !rule1 && !rule2 && !rule3 && rule4;
+        bool rule8Active = !rule4Active && !rule5 && !Rule6() && !Rule7() && rule8;
         bool rule9Active = Rule9();
 
         if (rule8Active)
@@ -432,7 +436,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
 
 
-        if (rule9Active)
+        if (rule4Active || rule9Active)
         {
             Debug.Log("Strike! Pressed status light instead of the button");
             GetComponent<KMBombModule>().HandleStrike();
