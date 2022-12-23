@@ -20,6 +20,10 @@ public class CruelSimpleton : MonoBehaviour {
 
     private float initialBombTime;
 
+    private string rule3Answer;
+
+    private List<string> rule3Input;
+
     private int rule7Answer;
 
     private List<int> rule8Answer;
@@ -41,6 +45,19 @@ public class CruelSimpleton : MonoBehaviour {
 
     private float timeOffset;
 
+    //if the status light being help
+    private bool holdingStatus;
+
+    //tells if the input is a dash or dot
+    private int dashOrDot;
+
+    int dashThreshold;
+    int dotThreshold;
+    int submitThreshold;
+
+    //tells if the module is submitting the morse code answer
+    private int submitting;
+
 
 
     static int ModuleIdCounter = 1;
@@ -48,31 +65,26 @@ public class CruelSimpleton : MonoBehaviour {
    private bool ModuleSolved;
 
 
-   void Awake () {
-      ModuleId = ModuleIdCounter++;
-        /*
-        foreach (KMSelectable object in keypad) {
-            object.OnInteract += delegate () { keypadPress(object); return false; };
-        }
-        */
-
-        //button.OnInteract += delegate () { buttonPress(); return false; };
+   void Awake () 
+    {
+        ModuleId = ModuleIdCounter++;
 
         blueButton.OnInteract += delegate () { BlueButton(); return false; };
 
         blueButton.OnInteractEnded += delegate () { BlueButtonRelease(); };
 
         statusLightButton.OnInteract += delegate () { StatusLightPress(); return false; };
+        statusLightButton.OnInteractEnded += delegate () { StatusLightRelease(); };
 
         topLeftSection.OnInteract += delegate () { SectionPress(topLeftSection); return false; };
         bottomLeftSection.OnInteract += delegate () { SectionPress(bottomLeftSection); return false; };
         bottomRightSection.OnInteract += delegate () { SectionPress(bottomRightSection); return false; };
         blueButton.OnInteract += delegate () { SectionPress(blueButton); return false; };
 
-
     }
 
-    void Start () {
+    void Start () 
+    {
 
         timeOffset = 2;
 
@@ -83,6 +95,16 @@ public class CruelSimpleton : MonoBehaviour {
         rule4Started = false;
 
         rule5Started = false;
+
+        holdingStatus = false;
+
+        dashOrDot = 0;
+
+        submitting = 0;
+
+        dotThreshold = 50;
+        dashThreshold = 150;
+        submitThreshold = 100;
 
 
         Debug.Log("Unicorn: " + Unicorn());
@@ -96,12 +118,21 @@ public class CruelSimpleton : MonoBehaviour {
         Debug.Log("Rule 8 " + Rule8());
         Debug.Log("Rule 9 " + Rule9());
 
+        if (Rule3())
+        {
+            rule3Answer = FindRule3Answer();
+            rule3Input = new List<string>();
+            Debug.Log("Expecting " + rule3Answer);
+
+        }
+
         if (Rule8())
         {
             rule8Answer = FindRule8Answer();
             rule8Input = null;
             LogAnswer(8);
         }
+
     }
 
     void Update () {
@@ -125,6 +156,60 @@ public class CruelSimpleton : MonoBehaviour {
             timeOffset = 2;
         }
    }
+
+    void FixedUpdate()
+    {
+        if (Rule3())
+        {
+            if (holdingStatus && !ModuleSolved)
+            {
+                dashOrDot++;
+            }
+
+            if (dashOrDot != 0 && dashOrDot <= dotThreshold)
+            {
+                //play dot sound
+                Debug.Log("Dot Inputted");
+            }
+
+            if (dashOrDot > dotThreshold && dashOrDot <= dashThreshold)
+            {
+                //play dash sound
+                Debug.Log("Dash Inputted");
+            }
+
+            else if (dashOrDot > dashThreshold)
+            {
+                //play input clear sound
+                Debug.Log("Input Cleared");
+            }
+
+            else if (!holdingStatus && !ModuleSolved && rule3Input.Count != 0)
+            {
+                submitting++;
+            }
+
+            if (submitting == submitThreshold)
+            {
+                Debug.Log("Submitted " + string.Join(" ", rule3Input.ToArray()));
+                Debug.Log("Expected " + rule3Answer);
+
+
+                if (Rule3Correct())
+                {
+                    ModuleSolved = true;
+                    submitting = 0;
+                    GetComponent<KMBombModule>().HandlePass();
+                }
+
+                else
+                {
+                    GetComponent<KMBombModule>().HandleStrike();
+                    submitting = 0;
+                }
+            }
+        }
+    }
 
     #region Rules
 
@@ -330,6 +415,8 @@ public class CruelSimpleton : MonoBehaviour {
     {
         blueButton.AddInteractionPunch(0.1f);
 
+        
+
         if (!Rule4())
         {
             return;
@@ -457,13 +544,23 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void StatusLightPress()
     {
+        statusLightButton.AddInteractionPunch(0.1f);
+
         bool rule1Active = Rule1();
+        bool rule3Active = Rule3();
+
         bool rule4Active = Rule4();
         bool rule5Active = Rule5();
         bool rule6Active = Rule6();
         bool rule7Active = Rule7();
         bool rule8Active = Rule8();
         bool rule9Active = Rule9();
+
+        if (rule3Active)
+        {
+            submitting = 0;
+            holdingStatus = true;
+        }
 
         if (rule7Active || rule8Active)
         {
@@ -481,10 +578,122 @@ public class CruelSimpleton : MonoBehaviour {
         }
     }
 
+    private void StatusLightRelease()
+    {
+        if (holdingStatus)
+        {
+            holdingStatus = false;
+
+            if (dashOrDot <= dotThreshold)
+            {
+                rule3Input.Add(".");
+            }
+
+            else if (dashOrDot > dotThreshold && dashOrDot <= dashThreshold)
+            {
+                rule3Input.Add("-");
+            }
+
+            else if(dashOrDot > dashThreshold)
+            {
+                rule3Input.Clear();
+            }
+
+            dashOrDot = 0;
+            
+
+            Debug.Log("Input is now: " + string.Join("", rule3Input.ToArray()));
+        }
+    }
+
 
     #endregion
 
     #region Find Answers
+
+    private string FindRule3Answer()
+    { 
+        switch(Bomb.GetSerialNumberLetters().First())
+        {
+            case 'A':
+                return ".-";
+
+            case 'B':
+                return "-...";
+
+            case 'C':
+                return "-.-.";
+
+            case 'D':
+                return "-..";
+
+            case 'E':
+                return ".";
+
+            case 'F':
+                return "..-.";
+
+            case 'G':
+                return "--.";
+
+            case 'H':
+                return "....";
+
+            case 'I':
+                return "..";
+
+            case 'J':
+                return ".---";
+
+            case 'K':
+                return "-.-";
+
+            case 'L':
+                return ".-..";
+
+            case 'M':
+                return "--";
+
+            case 'N':
+                return "-.";
+
+            case 'O':
+                return "---";
+
+            case 'P':
+                return ".--.";
+
+            case 'Q':
+                return "--.-";
+
+            case 'R':
+                return ".-.";
+
+            case 'S':
+                return "...";
+
+            case 'T':
+                return "-";
+
+            case 'U':
+                return "..-";
+
+            case 'V':
+                return "...-";
+
+            case 'W':
+                return ".--";
+
+            case 'X':
+                return "-..-";
+
+            case 'Y':
+                return "-.--";
+
+            default:
+                return "--..";
+        }
+    }
 
     private int FindRule7Answer()
     {
@@ -591,6 +800,27 @@ public class CruelSimpleton : MonoBehaviour {
 
         return true;
     }
+
+    //Tells if the rule 3 are correct
+    private bool Rule3Correct()
+    {
+        if (rule3Answer.Length != rule3Input.Count)
+        {
+            Debug.LogError("Lengths are not equal");
+            return false;
+        }
+
+        for (int i = 0; i < rule3Answer.Length; i++)
+        {
+            if (rule3Answer[i].ToString() != rule3Input[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     #endregion
 
 
