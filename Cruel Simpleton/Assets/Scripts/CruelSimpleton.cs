@@ -28,6 +28,8 @@ public class CruelSimpleton : MonoBehaviour {
 
     private float initialBombTime;
 
+    private int rule7Answer;
+
     //time the user started holding down and releasing the button for rule 4
     private float rule4StartingTime;
     private float rule4EndingTime;
@@ -65,11 +67,15 @@ public class CruelSimpleton : MonoBehaviour {
         blueButton.OnInteractEnded += delegate () { BlueButtonRelease(); };
 
 
-        topLeftSection.OnInteract += delegate () { StrikeButton(); return false; };
+        topLeftSection.OnInteract += delegate () { SectionPress(topLeftSection); return false; };
+        bottomLeftSection.OnInteract += delegate () { SectionPress(bottomLeftSection); return false; };
+        bottomRightSection.OnInteract += delegate () { SectionPress(bottomRightSection); return false; };
+        blueButton.OnInteract += delegate () { SectionPress(blueButton); return false; };
+
 
     }
 
-   void Start () {
+    void Start () {
 
         timeOffset = 2;
 
@@ -78,6 +84,10 @@ public class CruelSimpleton : MonoBehaviour {
         buttonPressedNum = 0;
 
         rule4Started = false;
+
+        rule5Started = false;
+
+        rule7Answer = -1;
 
         unicorn = Unicorn();
         rule1 = Rule1();
@@ -89,22 +99,21 @@ public class CruelSimpleton : MonoBehaviour {
 
 
 
-        
+
         Debug.Log("Unicorn: " + unicorn);
         Debug.Log("Rule 1 " + rule1);
         Debug.Log("Rule 2 " + rule2);
         Debug.Log("Rule 3 " + rule3);
         Debug.Log("Rule 4 " + rule4);
         Debug.Log("Rule 5 " + rule5);
-        
-
-        /*
         Debug.Log("Rule 6 " + Rule6());
         Debug.Log("Rule 7 " + Rule7());
+
+        /*
         Debug.Log("Rule 8 " + rule8);
         Debug.Log("Rule 9 " + Rule9());
         */
-        
+
 
     }
 
@@ -258,6 +267,13 @@ public class CruelSimpleton : MonoBehaviour {
 
         bool rule6Active = !rule5Active && Rule6();
 
+        bool rule7Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && Rule7();
+
+        if (rule7Active)
+        {
+            return;
+        }
+
         if (!rule6Active)
         { 
             GetComponent<KMBombModule>().HandleStrike();
@@ -285,6 +301,11 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void BlueButtonRelease()
     {
+        if (!rule4)
+        {
+            return;
+        }
+
         rule4Started = false;
         float deltaTime = Math.Abs(rule4EndingTime - rule4StartingTime);
 
@@ -307,12 +328,69 @@ public class CruelSimpleton : MonoBehaviour {
         }
     }
 
-    private void StrikeButton()
+    private void SectionPress(KMSelectable section)
     {
-        GetComponent<KMBombModule>().HandleStrike();
+        if (ModuleSolved)
+        {
+            return;
+        }
+        
+        bool rule7Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && Rule7();
+
+        if (rule7Active)
+        {
+            rule7Answer = FindRule7Answer();   
+
+            int sectionNum = ConvertSectionToInt(section);
+
+            if (sectionNum == rule7Answer)
+            {
+                GetComponent<KMBombModule>().HandlePass();
+                ModuleSolved = true;
+            }
+
+            else
+            {
+                GetComponent<KMBombModule>().HandleStrike();
+                Debug.Log("Pressed section " + sectionNum + " insetead of section " + rule7Answer);
+            }
+        }
+    }
+
+
+
+    private int ConvertSectionToInt(KMSelectable section)
+    {
+        if (section == topLeftSection)
+        {
+            return 1;
+        }
+
+        if (section == bottomLeftSection)
+        {
+            return 2;
+        }
+
+        if (section == bottomRightSection)
+        {
+            return 3;
+        }
+
+        return 4;
     }
     #endregion
 
+    private int FindRule7Answer()
+    {
+        int strikes = Bomb.GetStrikes();
+
+        while (strikes > 4)
+        {
+            strikes -= 4;
+        }
+
+        return strikes;
+    }
 
 
 
