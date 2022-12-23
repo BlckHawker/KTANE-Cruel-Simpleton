@@ -29,9 +29,15 @@ public class CruelSimpleton : MonoBehaviour {
     private float initialBombTime;
 
 
+    //number of time button has been pressed for rule 5
+    private int buttonPressedNum;
 
-    //tells which rule(s) to follow
-    List<int> rulesToFollow;
+    //tells if the user started pressing the button for rule 5
+    private bool rule5Started;
+    
+
+    private float timeOffset;
+
 
 
     static int ModuleIdCounter = 1;
@@ -55,8 +61,12 @@ public class CruelSimpleton : MonoBehaviour {
    }
 
    void Start () {
+
+        timeOffset = 2;
+
         initialBombTime = Bomb.GetTime();
 
+        buttonPressedNum = 0;
 
         unicorn = Unicorn();
         rule1 = Rule1();
@@ -67,6 +77,7 @@ public class CruelSimpleton : MonoBehaviour {
         rule8 = Rule8();
 
 
+
         
         Debug.Log("Unicorn: " + unicorn);
         Debug.Log("Rule 1 " + rule1);
@@ -74,9 +85,10 @@ public class CruelSimpleton : MonoBehaviour {
         Debug.Log("Rule 3 " + rule3);
         Debug.Log("Rule 4 " + rule4);
         Debug.Log("Rule 5 " + rule5);
-        Debug.Log("Rule 6 " + Rule6());
+        
 
         /*
+        Debug.Log("Rule 6 " + Rule6());
         Debug.Log("Rule 7 " + Rule7());
         Debug.Log("Rule 8 " + rule8);
         Debug.Log("Rule 9 " + Rule9());
@@ -86,7 +98,20 @@ public class CruelSimpleton : MonoBehaviour {
     }
 
     void Update () {
+        if (rule5Started && !ModuleSolved)
+        { 
+            timeOffset -= Time.deltaTime;
+        }
 
+
+        if (timeOffset <= 0 && !ModuleSolved)
+        {
+            GetComponent<KMBombModule>().HandleStrike();
+            Debug.Log("Strike! 2 seconds have passed since you pressed the button. Restarting module");
+            rule5Started = false;
+            buttonPressedNum = 0;
+            timeOffset = 2;
+        }
    }
 
     #region Rules
@@ -175,11 +200,33 @@ public class CruelSimpleton : MonoBehaviour {
 
     #endregion
 
-    #region Event
+    #region Events
     private void BlueButton()
     {
         if(ModuleSolved)
         {
+            return;
+        }
+
+        bool rule5Active = !rule1 && !rule2 && !rule3 && !rule4 && rule5;
+
+
+        if (rule5Active)
+        {
+            rule5Started = true;
+            timeOffset = 2f;
+            buttonPressedNum++;
+            
+            Debug.Log("Button has been pressed " + buttonPressedNum + " times");
+
+
+            if (buttonPressedNum == 69)
+            {
+                rule5Started = false;
+                GetComponent<KMBombModule>().HandlePass();
+                ModuleSolved = true;
+                Debug.Log("Module solved: " + ModuleSolved);
+            }
             return;
         }
 
@@ -204,6 +251,7 @@ public class CruelSimpleton : MonoBehaviour {
         else
         {
             GetComponent<KMBombModule>().HandlePass();
+            ModuleSolved = true;
         }
 
 
