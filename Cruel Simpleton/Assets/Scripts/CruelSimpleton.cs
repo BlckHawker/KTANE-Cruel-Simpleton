@@ -30,6 +30,10 @@ public class CruelSimpleton : MonoBehaviour {
 
     private int rule7Answer;
 
+    private List<int> rule8Answer;
+
+    private List<int> rule8Input;
+
     //time the user started holding down and releasing the button for rule 4
     private float rule4StartingTime;
     private float rule4EndingTime;
@@ -87,8 +91,6 @@ public class CruelSimpleton : MonoBehaviour {
 
         rule5Started = false;
 
-        rule7Answer = -1;
-
         unicorn = Unicorn();
         rule1 = Rule1();
         rule2 = Rule2();
@@ -96,9 +98,6 @@ public class CruelSimpleton : MonoBehaviour {
         rule4 = Rule4();
         rule5 = Rule5();
         rule8 = Rule8();
-
-
-
 
         Debug.Log("Unicorn: " + unicorn);
         Debug.Log("Rule 1 " + rule1);
@@ -108,13 +107,18 @@ public class CruelSimpleton : MonoBehaviour {
         Debug.Log("Rule 5 " + rule5);
         Debug.Log("Rule 6 " + Rule6());
         Debug.Log("Rule 7 " + Rule7());
+        Debug.Log("Rule 8 " + rule8);
 
         /*
-        Debug.Log("Rule 8 " + rule8);
         Debug.Log("Rule 9 " + Rule9());
         */
 
-
+        if (rule8)
+        {
+            rule8Answer = FindRule8Answer();
+            rule8Input = null;
+            LogAnswer(8);
+        }
     }
 
     void Update () {
@@ -269,7 +273,10 @@ public class CruelSimpleton : MonoBehaviour {
 
         bool rule7Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && Rule7();
 
-        if (rule7Active)
+        bool rule8Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7() && rule8;
+
+
+        if (rule7Active || rule8Active)
         {
             return;
         }
@@ -341,7 +348,7 @@ public class CruelSimpleton : MonoBehaviour {
         {
             rule7Answer = FindRule7Answer();   
 
-            int sectionNum = ConvertSectionToInt(section);
+            int sectionNum = SectionToInt(section);
 
             if (sectionNum == rule7Answer)
             {
@@ -352,14 +359,86 @@ public class CruelSimpleton : MonoBehaviour {
             else
             {
                 GetComponent<KMBombModule>().HandleStrike();
-                Debug.Log("Pressed section " + sectionNum + " insetead of section " + rule7Answer);
+                Debug.Log("Strike! Pressed section " + sectionNum + " insetead of section " + rule7Answer);
+            }
+        }
+
+        bool rule8Active = !rule7Active && rule8;
+
+        if (rule8Active)
+        {
+            if (rule8Input == null)
+            {
+                rule8Input = new List<int>();
+            }
+
+            rule8Input.Add(SectionToInt(section));
+
+            int index = rule8Input.Count - 1;
+
+            if (rule8Input.Last() != rule8Answer[index])
+            { 
+                GetComponent<KMBombModule>().HandleStrike();
+                Debug.Log("Strike! Pressed section " + rule8Input.Last() + " insetead of section " + rule8Answer[index]);
+                rule8Input.Clear();
+                return;
+            }
+
+            if (rule8Input.Count == rule8Answer.Count)
+            {
+                GetComponent<KMBombModule>().HandlePass();
+                ModuleSolved = true;
             }
         }
     }
 
 
 
-    private int ConvertSectionToInt(KMSelectable section)
+
+    #endregion
+
+    #region Find Answers
+
+    private int FindRule7Answer()
+    {
+        int strikes = Bomb.GetStrikes();
+
+        while (strikes > 4)
+        {
+            strikes -= 4;
+        }
+
+        return strikes;
+    }
+
+    private List<int> FindRule8Answer()
+    {
+        int modNum = Bomb.GetModuleNames().Count();
+        
+        string[] strArr = modNum.ToString().Split();
+
+        List<int> answer = new List<int>();
+
+        foreach(string str in strArr)
+        {
+            int num = int.Parse(str) % 4;
+
+            if (num == 0)
+            {
+                num = 4;
+            }
+
+            answer.Add(num);
+        }
+
+        return answer;
+    }
+
+    #endregion
+
+    #region Helper Methods
+
+    private int SectionToInt(KMSelectable section)
     {
         if (section == topLeftSection)
         {
@@ -378,19 +457,21 @@ public class CruelSimpleton : MonoBehaviour {
 
         return 4;
     }
+
+    //Logs the answer that needs to be inputted
+    private void LogAnswer(int rule)
+    {
+        if (rule == 8)
+        {
+            Debug.Log("Rule 8 answer: " + string.Join(", ", rule8Answer.Select(x => x.ToString()).ToArray()));
+        }
+    }
+
     #endregion
 
-    private int FindRule7Answer()
-    {
-        int strikes = Bomb.GetStrikes();
 
-        while (strikes > 4)
-        {
-            strikes -= 4;
-        }
 
-        return strikes;
-    }
+
 
 
 
