@@ -70,6 +70,7 @@ public class CruelSimpleton : MonoBehaviour {
 
         blueButton.OnInteractEnded += delegate () { BlueButtonRelease(); };
 
+        statusLightButton.OnInteract += delegate () { StatusLightPress(); return false; };
 
         topLeftSection.OnInteract += delegate () { SectionPress(topLeftSection); return false; };
         bottomLeftSection.OnInteract += delegate () { SectionPress(bottomLeftSection); return false; };
@@ -108,10 +109,7 @@ public class CruelSimpleton : MonoBehaviour {
         Debug.Log("Rule 6 " + Rule6());
         Debug.Log("Rule 7 " + Rule7());
         Debug.Log("Rule 8 " + rule8);
-
-        /*
         Debug.Log("Rule 9 " + Rule9());
-        */
 
         if (rule8)
         {
@@ -232,12 +230,18 @@ public class CruelSimpleton : MonoBehaviour {
     #region Events
     private void BlueButton()
     {
-        if(ModuleSolved)
+        bool rule4Active = !rule1 && !rule2 && !rule3 && rule4;
+        bool rule5Active = !rule4Active && rule5;
+        bool rule6Active = !rule5Active && Rule6();
+        bool rule7Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && Rule7();
+        bool rule8Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7() && rule8;
+        bool rule9Active = Rule9();
+
+        if (ModuleSolved)
         {
             return;
         }
 
-        bool rule4Active = !rule1 && !rule2 && !rule3 && rule4;
 
         if (rule4Active)
         {
@@ -247,7 +251,6 @@ public class CruelSimpleton : MonoBehaviour {
             return;
         }
 
-        bool rule5Active = !rule4Active && rule5;
 
 
         if (rule5Active)
@@ -269,11 +272,8 @@ public class CruelSimpleton : MonoBehaviour {
             return;
         }
 
-        bool rule6Active = !rule5Active && Rule6();
+        
 
-        bool rule7Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && Rule7();
-
-        bool rule8Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7() && rule8;
 
 
         if (rule7Active || rule8Active)
@@ -281,29 +281,39 @@ public class CruelSimpleton : MonoBehaviour {
             return;
         }
 
-        if (!rule6Active)
+
+        if (!rule6Active && rule9Active)
         { 
             GetComponent<KMBombModule>().HandleStrike();
             Debug.Log("Strike! Pressed the button when rule 6 didn't apply");
             return;
         }
 
-        int seconds = (int)Bomb.GetTime() % 60;
-
-        if (seconds % 10 != 0)
+        if (rule6Active)
         {
-            GetComponent<KMBombModule>().HandleStrike();
-            Debug.Log("Strike! Pressed the button when the seconds were " + seconds + ", which is not a multiple of 10");
-            return;
+            int seconds = (int)Bomb.GetTime() % 60;
+
+            if (seconds % 10 != 0)
+            {
+                GetComponent<KMBombModule>().HandleStrike();
+                Debug.Log("Strike! Pressed the button when the seconds were " + seconds + ", which is not a multiple of 10");
+                return;
+            }
+
+            else
+            {
+                GetComponent<KMBombModule>().HandlePass();
+                ModuleSolved = true;
+                return;
+            }
         }
 
-        else
+
+        if (rule9Active)
         {
             GetComponent<KMBombModule>().HandlePass();
             ModuleSolved = true;
         }
-
-
     }
 
     private void BlueButtonRelease()
@@ -337,18 +347,24 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void SectionPress(KMSelectable section)
     {
+
+        string sectionName = SectionToName(section);
+        int sectionNum = SectionToInt(section);
+
+        bool rule7Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && Rule7();
+        bool rule8Active = !rule7Active && rule8;
+
+        Debug.Log(sectionName + " section pressed");
+
         if (ModuleSolved)
         {
             return;
         }
         
-        bool rule7Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && Rule7();
 
         if (rule7Active)
         {
             rule7Answer = FindRule7Answer();   
-
-            int sectionNum = SectionToInt(section);
 
             if (sectionNum == rule7Answer)
             {
@@ -363,7 +379,6 @@ public class CruelSimpleton : MonoBehaviour {
             }
         }
 
-        bool rule8Active = !rule7Active && rule8;
 
         if (rule8Active)
         {
@@ -372,7 +387,7 @@ public class CruelSimpleton : MonoBehaviour {
                 rule8Input = new List<int>();
             }
 
-            rule8Input.Add(SectionToInt(section));
+            rule8Input.Add(sectionNum);
 
             int index = rule8Input.Count - 1;
 
@@ -388,11 +403,33 @@ public class CruelSimpleton : MonoBehaviour {
             {
                 GetComponent<KMBombModule>().HandlePass();
                 ModuleSolved = true;
+                return;
+            }
+        }
+
+
+        if (Rule9())
+        {
+            if (sectionNum != 4)
+            {
+                Debug.Log("Strike! Pressed " + sectionName + " section instead of the button");
+                GetComponent<KMBombModule>().HandleStrike();
+                return;
             }
         }
     }
 
+    private void StatusLightPress()
+    {
+        bool rule9Active = Rule9();
 
+        if (rule9Active)
+        {
+            Debug.Log("Strike! Pressed status light instead of the button");
+            GetComponent<KMBombModule>().HandleStrike();
+            return;
+        }
+    }
 
 
     #endregion
@@ -458,6 +495,26 @@ public class CruelSimpleton : MonoBehaviour {
         return 4;
     }
 
+    private string SectionToName(KMSelectable section)
+    {
+        if (section == topLeftSection)
+        {
+            return "Top left";
+        }
+
+        if (section == bottomLeftSection)
+        {
+            return "Bottom Left";
+        }
+
+        if (section == bottomRightSection)
+        {
+            return "Bottom Right";
+        }
+
+        return "Button";
+    }
+
     //Logs the answer that needs to be inputted
     private void LogAnswer(int rule)
     {
@@ -466,7 +523,6 @@ public class CruelSimpleton : MonoBehaviour {
             Debug.Log("Rule 8 answer: " + string.Join(", ", rule8Answer.Select(x => x.ToString()).ToArray()));
         }
     }
-
     #endregion
 
 
