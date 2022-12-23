@@ -104,7 +104,7 @@ public class CruelSimpleton : MonoBehaviour {
 
         dotThreshold = 50;
         dashThreshold = 150;
-        submitThreshold = 100;
+        submitThreshold = 125;
 
 
         Debug.Log("Unicorn: " + Unicorn());
@@ -205,6 +205,7 @@ public class CruelSimpleton : MonoBehaviour {
                 else
                 {
                     GetComponent<KMBombModule>().HandleStrike();
+                    rule3Input.Clear();
                     submitting = 0;
                 }
             }
