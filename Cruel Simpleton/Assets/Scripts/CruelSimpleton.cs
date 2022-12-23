@@ -460,10 +460,11 @@ public class CruelSimpleton : MonoBehaviour {
         bool rule4Active = Rule4();
         bool rule5Active = Rule5();
         bool rule6Active = Rule6();
+        bool rule7Active = Rule7();
         bool rule8Active = Rule8();
         bool rule9Active = Rule9();
 
-        if (rule8Active)
+        if (rule7Active || rule8Active)
         {
             Debug.Log("Strike! Pressed status light instead of one of the sections");
             GetComponent<KMBombModule>().HandleStrike();
