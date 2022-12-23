@@ -49,7 +49,7 @@ public class CruelSimpleton : MonoBehaviour {
 
         //button.OnInteract += delegate () { buttonPress(); return false; };
 
-        blueButton.OnInteract += delegate () { TestButton(); return false; };
+        blueButton.OnInteract += delegate () { BlueButton(); return false; };
 
         topLeftSection.OnInteract += delegate () { StrikeButton(); return false; };
    }
@@ -67,7 +67,7 @@ public class CruelSimpleton : MonoBehaviour {
         rule8 = Rule8();
 
 
-        /*
+        
         Debug.Log("Unicorn: " + unicorn);
         Debug.Log("Rule 1 " + rule1);
         Debug.Log("Rule 2 " + rule2);
@@ -75,10 +75,13 @@ public class CruelSimpleton : MonoBehaviour {
         Debug.Log("Rule 4 " + rule4);
         Debug.Log("Rule 5 " + rule5);
         Debug.Log("Rule 6 " + Rule6());
+
+        /*
         Debug.Log("Rule 7 " + Rule7());
         Debug.Log("Rule 8 " + rule8);
         Debug.Log("Rule 9 " + Rule9());
         */
+        
 
     }
 
@@ -172,16 +175,47 @@ public class CruelSimpleton : MonoBehaviour {
 
     #endregion
 
-    private void TestButton()
+    #region Event
+    private void BlueButton()
     {
-        Debug.Log("Blue button pressed");
-        Debug.Log("Rule 7: " + Rule7());
+        if(ModuleSolved)
+        {
+            return;
+        }
+
+        bool rule6Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && Rule6();
+
+        if (!rule6Active)
+        { 
+            GetComponent<KMBombModule>().HandleStrike();
+            Debug.Log("Strike! Pressed the button when rule 6 didn't apply");
+            return;
+        }
+
+        int seconds = (int)Bomb.GetTime() % 60;
+
+        if (seconds % 10 != 0)
+        {
+            GetComponent<KMBombModule>().HandleStrike();
+            Debug.Log("Strike! Pressed the button when the seconds were " + seconds + ", which is not a multiple of 10");
+            return;
+        }
+
+        else
+        {
+            GetComponent<KMBombModule>().HandlePass();
+        }
+
+
     }
 
     private void StrikeButton()
     {
         GetComponent<KMBombModule>().HandleStrike();
     }
+    #endregion
+
+
 
 
 #pragma warning disable 414
