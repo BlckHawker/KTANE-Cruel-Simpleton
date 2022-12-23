@@ -18,14 +18,6 @@ public class CruelSimpleton : MonoBehaviour {
     public KMSelectable statusLightButton;
     public KMSelectable blueButton;
 
-    private bool unicorn;
-    private bool rule1;
-    private bool rule2;
-    private bool rule3;
-    private bool rule4;
-    private bool rule5;
-    private bool rule8;
-
     private float initialBombTime;
 
     private int rule7Answer;
@@ -92,26 +84,19 @@ public class CruelSimpleton : MonoBehaviour {
 
         rule5Started = false;
 
-        unicorn = Unicorn();
-        rule1 = Rule1();
-        rule2 = Rule2();
-        rule3 = Rule3();
-        rule4 = Rule4();
-        rule5 = Rule5();
-        rule8 = Rule8();
 
-        Debug.Log("Unicorn: " + unicorn);
-        Debug.Log("Rule 1 " + rule1);
-        Debug.Log("Rule 2 " + rule2);
-        Debug.Log("Rule 3 " + rule3);
-        Debug.Log("Rule 4 " + rule4);
-        Debug.Log("Rule 5 " + rule5);
+        Debug.Log("Unicorn: " + Unicorn());
+        Debug.Log("Rule 1 " + Rule1());
+        Debug.Log("Rule 2 " + Rule2());
+        Debug.Log("Rule 3 " + Rule3());
+        Debug.Log("Rule 4 " + Rule4());
+        Debug.Log("Rule 5 " + Rule5());
         Debug.Log("Rule 6 " + Rule6());
         Debug.Log("Rule 7 " + Rule7());
-        Debug.Log("Rule 8 " + rule8);
+        Debug.Log("Rule 8 " + Rule8());
         Debug.Log("Rule 9 " + Rule9());
 
-        if (rule8)
+        if (Rule8())
         {
             rule8Answer = FindRule8Answer();
             rule8Input = null;
@@ -160,6 +145,11 @@ public class CruelSimpleton : MonoBehaviour {
 
     private bool Rule1()
     {
+        if (Unicorn())
+        {
+            return false;
+        }
+
         //If the serial number contains four numbers and two letters
 
         return Bomb.GetSerialNumberNumbers().Count() == 4 && Bomb.GetSerialNumberLetters().Count() == 2;
@@ -167,6 +157,11 @@ public class CruelSimpleton : MonoBehaviour {
 
     private bool Rule2()
     {
+        if (Unicorn() || Rule1())
+        {
+            return false;
+        }
+
         //if there is a lit BOB indicator
 
         return Bomb.IsIndicatorOn(Indicator.BOB);
@@ -174,6 +169,11 @@ public class CruelSimpleton : MonoBehaviour {
 
     private bool Rule3()
     {
+        if (Unicorn() || Rule1()|| Rule2())
+        {
+            return false;
+        }
+
         //if there is a Parallel port and Serial port on the same port plate
 
         return Bomb.GetPortPlates().Where(plate => plate.Contains("Parallel") && plate.Contains("Serial")).Any();
@@ -181,29 +181,54 @@ public class CruelSimpleton : MonoBehaviour {
 
     private bool Rule4()
     {
+        if (Unicorn() || Rule1() || Rule2() || Rule3())
+        {
+            return false;
+        }
+
         //if there is 4 batteries in 2 holders
         return Bomb.GetBatteryCount() == 4 && Bomb.GetBatteryHolderCount() == 2;
     }
 
     private bool Rule5()
     {
+        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4())
+        {
+            return false;
+        }
+
         //there is a simpleton
         return Bomb.GetModuleNames().Where(name => name.ToUpper() == "THE SIMPLETON").Any();
     }
 
     private bool Rule6()
     {
+        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4() || Rule5())
+        {
+            return false;
+        }
+
         //more than half the time is on the bomb has passed
         return Bomb.GetTime() < initialBombTime / 2;
     }
 
     private bool Rule7()
     {
+        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4() || Rule5() || Rule6())
+        {
+            return false;
+        }
+
         return Bomb.GetStrikes() > 0;
     }
 
     private bool Rule8()
     {
+        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4() || Rule5() || Rule6() || Rule7())
+        {
+            return false;
+        }
+
         //total mod count is prime 
 
         int moduleNum = Bomb.GetModuleNames().Count();
@@ -222,7 +247,12 @@ public class CruelSimpleton : MonoBehaviour {
 
     private bool Rule9()
     {
-        return !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7() && !rule8;
+        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4() || Rule5() || Rule6() || Rule7())
+        {
+            return false;
+        }
+
+        return !Rule8();
     }
 
     #endregion
@@ -230,11 +260,11 @@ public class CruelSimpleton : MonoBehaviour {
     #region Events
     private void BlueButton()
     {
-        bool rule4Active = !rule1 && !rule2 && !rule3 && rule4;
-        bool rule5Active = !rule4Active && rule5;
-        bool rule6Active = !rule5Active && Rule6();
-        bool rule7Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && Rule7();
-        bool rule8Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7() && rule8;
+        bool rule4Active = Rule4();
+        bool rule5Active = Rule5();
+        bool rule6Active = Rule6();
+        bool rule7Active = Rule7();
+        bool rule8Active = Rule8();
         bool rule9Active = Rule9();
 
         if (ModuleSolved)
@@ -318,12 +348,13 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void BlueButtonRelease()
     {
-        if (!rule4)
+        if (Rule4())
         {
             return;
         }
 
         rule4Started = false;
+
         float deltaTime = Math.Abs(rule4EndingTime - rule4StartingTime);
 
         float minValue = 7.5f;
@@ -351,9 +382,11 @@ public class CruelSimpleton : MonoBehaviour {
         string sectionName = SectionToName(section);
         int sectionNum = SectionToInt(section);
 
-        bool rule4Active = !rule1 && !rule2 && !rule3 && rule4;
-        bool rule7Active = !rule4Active && !rule5 && !Rule6() && Rule7();
-        bool rule8Active = !rule7Active && rule8;
+        bool rule4Active = Rule4();
+        bool rule5Active = Rule5();
+        bool rule6Active = Rule6();
+        bool rule7Active = Rule7();
+        bool rule8Active = Rule8();
 
         Debug.Log(sectionName + " section pressed");
 
@@ -411,7 +444,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
 
 
-        if (rule4Active || Rule9())
+        if (rule4Active || rule5Active || rule6Active || Rule9())
         {
             if (sectionNum != 4)
             {
@@ -424,8 +457,10 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void StatusLightPress()
     {
-        bool rule4Active = !rule1 && !rule2 && !rule3 && rule4;
-        bool rule8Active = !rule4Active && !rule5 && !Rule6() && !Rule7() && rule8;
+        bool rule4Active = Rule4();
+        bool rule5Active = Rule5();
+        bool rule6Active = Rule6();
+        bool rule8Active = Rule8();
         bool rule9Active = Rule9();
 
         if (rule8Active)
@@ -436,7 +471,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
 
 
-        if (rule4Active || rule9Active)
+        if (rule4Active || rule5Active || rule6Active || rule9Active)
         {
             Debug.Log("Strike! Pressed status light instead of the button");
             GetComponent<KMBombModule>().HandleStrike();
