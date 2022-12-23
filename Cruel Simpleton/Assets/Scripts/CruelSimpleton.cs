@@ -41,13 +41,15 @@ public class CruelSimpleton : MonoBehaviour {
 
    void Awake () {
       ModuleId = ModuleIdCounter++;
-      /*
-      foreach (KMSelectable object in keypad) {
-          object.OnInteract += delegate () { keypadPress(object); return false; };
-      }
-      */
+        /*
+        foreach (KMSelectable object in keypad) {
+            object.OnInteract += delegate () { keypadPress(object); return false; };
+        }
+        */
 
-      //button.OnInteract += delegate () { buttonPress(); return false; };
+        //button.OnInteract += delegate () { buttonPress(); return false; };
+
+        blueButton.OnInteract += delegate () { TestButton(); return false; };
    }
 
    void Start () {
@@ -62,16 +64,19 @@ public class CruelSimpleton : MonoBehaviour {
         rule5 = Rule5();
         rule8 = Rule8();
 
+        Debug.Log("Rule 6 " + Rule6());
+
+        /*
         Debug.Log("Unicorn: " + unicorn);
         Debug.Log("Rule 1 " + rule1);
         Debug.Log("Rule 2 " + rule2);
         Debug.Log("Rule 3 " + rule3);
         Debug.Log("Rule 4 " + rule4);
         Debug.Log("Rule 5 " + rule5);
-        Debug.Log("Rule 6 " + Rule6());
         Debug.Log("Rule 7 " + Rule7());
         Debug.Log("Rule 8 " + rule8);
         Debug.Log("Rule 9 " + Rule9());
+        8*/
 
     }
 
@@ -131,8 +136,8 @@ public class CruelSimpleton : MonoBehaviour {
 
     private bool Rule6()
     {
-        //more than half the time is on the bomb
-        return Bomb.GetTime() > initialBombTime / 2;
+        //more than half the time is on the bomb has passed
+        return Bomb.GetTime() < initialBombTime / 2;
     }
 
     private bool Rule7()
@@ -166,8 +171,9 @@ public class CruelSimpleton : MonoBehaviour {
     #endregion
 
     private void TestButton()
-    { 
-    
+    {
+        Debug.Log("Blue button pressed");
+        Debug.Log("Rule 6: " + Rule6());
     }
 
 
