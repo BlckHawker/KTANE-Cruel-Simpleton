@@ -242,6 +242,8 @@ public class CruelSimpleton : MonoBehaviour {
     #region Events
     private void BlueButton()
     {
+        bool rule2Active = Rule2();
+        bool rule3Active = Rule3();
         bool rule4Active = Rule4();
         bool rule5Active = Rule5();
         bool rule6Active = Rule6();
@@ -253,7 +255,6 @@ public class CruelSimpleton : MonoBehaviour {
         {
             return;
         }
-
 
         if (rule4Active)
         {
@@ -285,7 +286,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
 
 
-        if (rule7Active || rule8Active)
+        if (rule2Active || rule3Active || rule7Active || rule8Active)
         {
             return;
         }
@@ -327,6 +328,8 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void BlueButtonRelease()
     {
+        blueButton.AddInteractionPunch(0.1f);
+
         if (!Rule4())
         {
             return;
@@ -357,17 +360,20 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void SectionPress(KMSelectable section)
     {
-        
+        section.AddInteractionPunch(0.1f);
+
         string sectionName = SectionToName(section);
         int sectionNum = SectionToInt(section);
 
+        bool rule1Active = Rule1();
+        bool rule2Active = Rule2();
+        bool rule3Active = Rule3();
         bool rule4Active = Rule4();
         bool rule5Active = Rule5();
         bool rule6Active = Rule6();
         bool rule7Active = Rule7();
         bool rule8Active = Rule8();
-
-        Debug.Log(sectionName + " section pressed");
+        bool rule9Active = Rule9();
 
         if (ModuleSolved)
         {
@@ -422,8 +428,23 @@ public class CruelSimpleton : MonoBehaviour {
             }
         }
 
+        if (rule2Active || rule3Active)
+        {
+            if (sectionNum == 4)
+            { 
+                Debug.Log("Strike! Pressed button instead of the status light");
+            }
 
-        if (rule4Active || rule5Active || rule6Active || Rule9())
+            else
+            {
+                Debug.Log("Strike! Pressed " + sectionName + " section instead of the status light");
+            }
+
+            GetComponent<KMBombModule>().HandleStrike();
+            return;
+        }
+
+        if (rule1Active || rule4Active || rule5Active || rule6Active || rule9Active)
         {
             if (sectionNum != 4)
             {
@@ -436,6 +457,7 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void StatusLightPress()
     {
+        bool rule1Active = Rule1();
         bool rule4Active = Rule4();
         bool rule5Active = Rule5();
         bool rule6Active = Rule6();
@@ -451,7 +473,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
 
 
-        if (rule4Active || rule5Active || rule6Active || rule9Active)
+        if (rule1Active || rule4Active || rule5Active || rule6Active || rule9Active)
         {
             Debug.Log("Strike! Pressed status light instead of the button");
             GetComponent<KMBombModule>().HandleStrike();
@@ -527,20 +549,20 @@ public class CruelSimpleton : MonoBehaviour {
     {
         if (section == topLeftSection)
         {
-            return "Top left";
+            return "top left";
         }
 
         if (section == bottomLeftSection)
         {
-            return "Bottom Left";
+            return "bottom left";
         }
 
         if (section == bottomRightSection)
         {
-            return "Bottom Right";
+            return "bottom right";
         }
 
-        return "Button";
+        return "button";
     }
 
     //Logs the answer that needs to be inputted
