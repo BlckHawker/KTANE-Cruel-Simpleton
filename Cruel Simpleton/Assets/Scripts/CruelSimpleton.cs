@@ -145,114 +145,96 @@ public class CruelSimpleton : MonoBehaviour {
 
     private bool Rule1()
     {
-        if (Unicorn())
+        //If the serial number contains four numbers and two letters
+
+        if (!(Bomb.GetSerialNumberNumbers().Count() == 4 && Bomb.GetSerialNumberLetters().Count() == 2))
         {
             return false;
         }
 
-        //If the serial number contains four numbers and two letters
-
-        return Bomb.GetSerialNumberNumbers().Count() == 4 && Bomb.GetSerialNumberLetters().Count() == 2;
+        return !Unicorn();
     }
 
     private bool Rule2()
     {
-        if (Unicorn() || Rule1())
+        //if there is a lit BOB indicator
+        if (!(Bomb.IsIndicatorOn(Indicator.BOB)))
         {
             return false;
         }
 
-        //if there is a lit BOB indicator
-
-        return Bomb.IsIndicatorOn(Indicator.BOB);
+        return !Unicorn() && !Rule1();
     }
 
     private bool Rule3()
     {
-        if (Unicorn() || Rule1()|| Rule2())
+        //if there is a Parallel port and Serial port on the same port plate
+        if (!Bomb.GetPortPlates().Where(plate => plate.Contains("Parallel") && plate.Contains("Serial")).Any())
         {
             return false;
         }
 
-        //if there is a Parallel port and Serial port on the same port plate
-
-        return Bomb.GetPortPlates().Where(plate => plate.Contains("Parallel") && plate.Contains("Serial")).Any();
+        return !Unicorn() && !Rule1() && !Rule2();
     }
 
     private bool Rule4()
     {
-        if (Unicorn() || Rule1() || Rule2() || Rule3())
+        //if there is 4 batteries in 2 holders
+        if (!(Bomb.GetBatteryCount() == 4 && Bomb.GetBatteryHolderCount() == 2))
         {
             return false;
         }
 
-        //if there is 4 batteries in 2 holders
-        return Bomb.GetBatteryCount() == 4 && Bomb.GetBatteryHolderCount() == 2;
+        return !Unicorn() && !Rule1() && !Rule2() && !Rule3();
     }
 
     private bool Rule5()
     {
-        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4())
+        //there is a simpleton
+
+        if (!Bomb.GetModuleNames().Where(name => name.ToUpper() == "THE SIMPLETON").Any())
         {
             return false;
         }
 
-        //there is a simpleton
-        return Bomb.GetModuleNames().Where(name => name.ToUpper() == "THE SIMPLETON").Any();
+        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4();
     }
 
     private bool Rule6()
     {
-        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4() || Rule5())
+        //more than half the time is on the bomb has passed
+        if (!(Bomb.GetTime() < initialBombTime / 2))
         {
             return false;
         }
 
-        //more than half the time is on the bomb has passed
-        return Bomb.GetTime() < initialBombTime / 2;
+        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4() && !Rule5();
     }
 
     private bool Rule7()
     {
-        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4() || Rule5() || Rule6())
+        if (!(Bomb.GetStrikes() > 0))
         {
             return false;
         }
 
-        return Bomb.GetStrikes() > 0;
+        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4() && !Rule5() && !Rule6();
     }
 
     private bool Rule8()
     {
-        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4() || Rule5() || Rule6() || Rule7())
+        //total mod count is prime 
+        if (!ModCountPrime())
         {
             return false;
         }
 
-        //total mod count is prime 
-
-        int moduleNum = Bomb.GetModuleNames().Count();
-
-        if (moduleNum == 1) return false;
-        if (moduleNum == 2) return true;
-
-        var limit = Math.Ceiling(Math.Sqrt(moduleNum)); //hoisting the loop limit
-
-        for (int i = 2; i <= limit; ++i)
-            if (moduleNum % i == 0)
-                return false;
-
-        return true;
+        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4() && !Rule5() && !Rule6() && !Rule7();
     }
 
     private bool Rule9()
     {
-        if (Unicorn() || Rule1() || Rule2() || Rule3() || Rule4() || Rule5() || Rule6() || Rule7())
-        {
-            return false;
-        }
-
-        return !Rule8();
+        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4() && !Rule5() && !Rule6() && !Rule7() && !Rule8();
     }
 
     #endregion
@@ -302,9 +284,6 @@ public class CruelSimpleton : MonoBehaviour {
             return;
         }
 
-        
-
-
 
         if (rule7Active || rule8Active)
         {
@@ -312,7 +291,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
 
 
-        if (!rule6Active && rule9Active)
+        if (!rule6Active && !rule9Active)
         { 
             GetComponent<KMBombModule>().HandleStrike();
             Debug.Log("Strike! Pressed the button when rule 6 didn't apply");
@@ -348,7 +327,7 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void BlueButtonRelease()
     {
-        if (Rule4())
+        if (!Rule4())
         {
             return;
         }
@@ -571,6 +550,24 @@ public class CruelSimpleton : MonoBehaviour {
         {
             Debug.Log("Rule 8 answer: " + string.Join(", ", rule8Answer.Select(x => x.ToString()).ToArray()));
         }
+    }
+
+    private bool ModCountPrime()
+    {
+        //total mod count is prime 
+
+        int moduleNum = Bomb.GetModuleNames().Count();
+
+        if (moduleNum == 1) return false;
+        if (moduleNum == 2) return true;
+
+        var limit = Math.Ceiling(Math.Sqrt(moduleNum)); //hoisting the loop limit
+
+        for (int i = 2; i <= limit; ++i)
+            if (moduleNum % i == 0)
+                return false;
+
+        return true;
     }
     #endregion
 
