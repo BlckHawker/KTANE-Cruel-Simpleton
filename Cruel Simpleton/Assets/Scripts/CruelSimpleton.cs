@@ -421,7 +421,16 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void StatusLightPress()
     {
+        bool rule8Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7() && rule8;
         bool rule9Active = Rule9();
+
+        if (rule8Active)
+        {
+            Debug.Log("Strike! Pressed status light instead of one of the sections");
+            GetComponent<KMBombModule>().HandleStrike();
+            return;
+        }
+
 
         if (rule9Active)
         {
