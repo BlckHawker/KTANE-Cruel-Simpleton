@@ -28,6 +28,11 @@ public class CruelSimpleton : MonoBehaviour {
 
     private float initialBombTime;
 
+    //time the user started holding down and releasing the button for rule 4
+    private float rule4StartingTime;
+    private float rule4EndingTime;
+
+    private bool rule4Started;
 
     //number of time button has been pressed for rule 5
     private int buttonPressedNum;
@@ -57,8 +62,12 @@ public class CruelSimpleton : MonoBehaviour {
 
         blueButton.OnInteract += delegate () { BlueButton(); return false; };
 
+        blueButton.OnInteractEnded += delegate () { BlueButtonRelease(); };
+
+
         topLeftSection.OnInteract += delegate () { StrikeButton(); return false; };
-   }
+
+    }
 
    void Start () {
 
@@ -67,6 +76,8 @@ public class CruelSimpleton : MonoBehaviour {
         initialBombTime = Bomb.GetTime();
 
         buttonPressedNum = 0;
+
+        rule4Started = false;
 
         unicorn = Unicorn();
         rule1 = Rule1();
@@ -101,6 +112,11 @@ public class CruelSimpleton : MonoBehaviour {
         if (rule5Started && !ModuleSolved)
         { 
             timeOffset -= Time.deltaTime;
+        }
+
+        if(rule4Started && !ModuleSolved)
+        {
+            rule4StartingTime += Time.deltaTime;
         }
 
 
@@ -208,7 +224,17 @@ public class CruelSimpleton : MonoBehaviour {
             return;
         }
 
-        bool rule5Active = !rule1 && !rule2 && !rule3 && !rule4 && rule5;
+        bool rule4Active = !rule1 && !rule2 && !rule3 && rule4;
+
+        if (rule4Active)
+        {
+            rule4StartingTime = Time.time;
+            rule4EndingTime = rule4StartingTime;
+            rule4Started = true;
+            return;
+        }
+
+        bool rule5Active = !rule4Active && rule5;
 
 
         if (rule5Active)
@@ -230,7 +256,7 @@ public class CruelSimpleton : MonoBehaviour {
             return;
         }
 
-        bool rule6Active = !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && Rule6();
+        bool rule6Active = !rule5Active && Rule6();
 
         if (!rule6Active)
         { 
@@ -255,6 +281,30 @@ public class CruelSimpleton : MonoBehaviour {
         }
 
 
+    }
+
+    private void BlueButtonRelease()
+    {
+        rule4Started = false;
+        float deltaTime = Math.Abs(rule4EndingTime - rule4StartingTime);
+
+        float minValue = 7.5f;
+        float maxValue = 8.5f;
+
+        if (minValue <= deltaTime && deltaTime <= maxValue)
+        {
+            GetComponent<KMBombModule>().HandlePass();
+            ModuleSolved = true;
+        }
+
+        else
+        {
+            GetComponent<KMBombModule>().HandleStrike();
+
+            string time = string.Format("{0:0.#}", deltaTime);
+
+            Debug.Log("Strike! Held button for " + time + " seconds");
+        }
     }
 
     private void StrikeButton()
