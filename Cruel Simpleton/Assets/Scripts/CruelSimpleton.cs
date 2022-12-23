@@ -50,6 +50,8 @@ public class CruelSimpleton : MonoBehaviour {
         //button.OnInteract += delegate () { buttonPress(); return false; };
 
         blueButton.OnInteract += delegate () { TestButton(); return false; };
+
+        topLeftSection.OnInteract += delegate () { StrikeButton(); return false; };
    }
 
    void Start () {
@@ -64,7 +66,6 @@ public class CruelSimpleton : MonoBehaviour {
         rule5 = Rule5();
         rule8 = Rule8();
 
-        Debug.Log("Rule 6 " + Rule6());
 
         /*
         Debug.Log("Unicorn: " + unicorn);
@@ -73,10 +74,11 @@ public class CruelSimpleton : MonoBehaviour {
         Debug.Log("Rule 3 " + rule3);
         Debug.Log("Rule 4 " + rule4);
         Debug.Log("Rule 5 " + rule5);
+        Debug.Log("Rule 6 " + Rule6());
         Debug.Log("Rule 7 " + Rule7());
         Debug.Log("Rule 8 " + rule8);
         Debug.Log("Rule 9 " + Rule9());
-        8*/
+        */
 
     }
 
@@ -173,7 +175,12 @@ public class CruelSimpleton : MonoBehaviour {
     private void TestButton()
     {
         Debug.Log("Blue button pressed");
-        Debug.Log("Rule 6: " + Rule6());
+        Debug.Log("Rule 7: " + Rule7());
+    }
+
+    private void StrikeButton()
+    {
+        GetComponent<KMBombModule>().HandleStrike();
     }
 
 
