@@ -53,20 +53,37 @@ public class CruelSimpleton : MonoBehaviour {
     //tells if the input is a dash or dot
     private int dashOrDot;
 
-    int dashThreshold;
-    int dotThreshold;
-    int breakThreshold;
-    int rule3SubmitThreshold;
-    int rule2SubmitThreshold;
+    private int dashThreshold;
+    private int dotThreshold;
+    private int breakThreshold;
+    private int rule3SubmitThreshold;
+    private int rule2SubmitThreshold;
 
-    int rule2CurrentIndex;
-
-
+    private int rule2CurrentIndex;
 
     //tells if the module is submitting the morse code answer
     private int submitting;
 
 
+    
+    private bool mouseDown = false;
+
+
+    //time when the user pressed/held the blue button
+    private int bluePressTime;
+    private int currentTime;
+    private int lastTime;
+
+    private enum Event
+    {
+        MouseUp,
+        MouseDown,
+        Tick
+    }
+
+    private List<Event> rule1Inputs;
+
+    private List<Event> rule1Answer;
 
     static int ModuleIdCounter = 1;
     int ModuleId;
@@ -93,6 +110,7 @@ public class CruelSimpleton : MonoBehaviour {
 
     void Start()
     {
+        rule1Inputs = new List<Event>();
 
         rule2Input = new List<List<string>>()
         {
@@ -127,6 +145,7 @@ public class CruelSimpleton : MonoBehaviour {
         rule2SubmitThreshold = 300;
 
 
+
         Debug.Log("Unicorn: " + Unicorn());
         Debug.Log("Rule 1 " + Rule1());
         Debug.Log("Rule 2 " + Rule2());
@@ -137,6 +156,15 @@ public class CruelSimpleton : MonoBehaviour {
         Debug.Log("Rule 7 " + Rule7());
         Debug.Log("Rule 8 " + Rule8());
         Debug.Log("Rule 9 " + Rule9());
+
+        if (Rule1())
+        {
+            rule1Answer = FindRule1Answer();
+
+            Debug.Log("Expecting: " + string.Join(", ", rule1Answer.Select(e => e.ToString()).ToArray()));
+
+
+        }
 
         if (Rule3())
         {
@@ -155,32 +183,46 @@ public class CruelSimpleton : MonoBehaviour {
 
     }
 
-    void Update() {
-        if (rule5Started && !ModuleSolved)
+    void Update() 
+    {
+        if (Rule1() && !ModuleSolved)
+        {
+            //Debug.Log(string.Join(", ", rule1Inputs.Select(e => e.ToString()).ToArray()));
+
+            currentTime = (int)Bomb.GetTime();
+
+            if (bluePressTime != currentTime && lastTime != currentTime)
+            {
+                lastTime = currentTime;
+                rule1Inputs.Add(Event.Tick);
+                CheckEvents();
+            }
+
+        }
+
+        else if (rule5Started && !ModuleSolved)
         {
             timeOffset -= Time.deltaTime;
+
+            if (timeOffset <= 0 && !ModuleSolved)
+            {
+                GetComponent<KMBombModule>().HandleStrike();
+                Debug.Log("Strike! 2 seconds have passed since you pressed the button. Restarting module");
+                rule5Started = false;
+                buttonPressedNum = 0;
+                timeOffset = 2;
+            }
         }
 
         if (rule4Started && !ModuleSolved)
         {
             rule4StartingTime += Time.deltaTime;
         }
-
-
-        if (timeOffset <= 0 && !ModuleSolved)
-        {
-            GetComponent<KMBombModule>().HandleStrike();
-            Debug.Log("Strike! 2 seconds have passed since you pressed the button. Restarting module");
-            rule5Started = false;
-            buttonPressedNum = 0;
-            timeOffset = 2;
-        }
     }
 
     void FixedUpdate()
     {
         if (Rule2())
-
         {
             if (holdingStatus && !ModuleSolved)
             {
@@ -414,6 +456,7 @@ public class CruelSimpleton : MonoBehaviour {
     #region Events
     private void BlueButton()
     {
+        bool rule1Active = Rule1();
         bool rule2Active = Rule2();
         bool rule3Active = Rule3();
         bool rule4Active = Rule4();
@@ -425,6 +468,19 @@ public class CruelSimpleton : MonoBehaviour {
 
         if (ModuleSolved)
         {
+            return;
+        }
+
+        if (rule1Active)
+        {
+            if (!mouseDown)
+            {
+                rule1Inputs.Add(Event.MouseDown);
+                CheckEvents();
+            }
+
+            bluePressTime = (int)Bomb.GetTime();
+            mouseDown = true;
             return;
         }
 
@@ -500,9 +556,20 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void BlueButtonRelease()
     {
+        if (ModuleSolved)
+        {
+            return;
+        }
+
         blueButton.AddInteractionPunch(0.1f);
 
-
+        if (mouseDown && rule1Inputs.Count(e => e == Event.MouseDown) > rule1Inputs.Count(e => e == Event.MouseUp))
+        {
+            rule1Inputs.Add(Event.MouseUp);
+            bluePressTime = (int)Bomb.GetTime();
+            CheckEvents();
+        }
+        mouseDown = false;
 
         if (!Rule4())
         {
@@ -731,6 +798,32 @@ public class CruelSimpleton : MonoBehaviour {
 
     #region Find Answers
 
+    private List<Event> FindRule1Answer()
+    {
+        char letter = Bomb.GetSerialNumberLetters().Last();
+
+        int num = (letter - 64) % 5;
+
+        switch (num)
+        {
+            case 0:
+                return new List<Event>() { Event.Tick, Event.MouseDown, Event.Tick, Event.MouseUp, Event.Tick };
+
+            case 1:
+                return new List<Event>() { Event.Tick, Event.MouseDown, Event.MouseUp, Event.Tick, Event.MouseDown, Event.MouseUp, Event.Tick };
+
+            case 2:
+                return new List<Event>() { Event.Tick, Event.MouseDown, Event.MouseUp, Event.Tick, Event.MouseDown, Event.Tick, Event.MouseUp, Event.Tick };
+
+            case 3:
+                return new List<Event>() { Event.Tick, Event.MouseDown, Event.Tick, Event.MouseUp, Event.MouseDown, Event.Tick, Event.MouseUp, Event.Tick };
+
+            default:
+                return new List<Event>() { Event.Tick, Event.MouseDown, Event.Tick, Event.Tick, Event.MouseUp, Event.Tick };
+
+        }
+    }
+
     private string FindRule3Answer()
     {
         switch (Bomb.GetSerialNumberLetters().First())
@@ -923,6 +1016,27 @@ public class CruelSimpleton : MonoBehaviour {
     }
 
     //Tells if the rule 3 are correct
+    private bool Rule1Correct()
+    {
+        if (rule1Answer.Count != rule1Inputs.Count)
+        {
+            Debug.LogError("Sizes are different");
+            return false;
+        }
+
+        for (int i = 0; i < rule1Answer.Count; i++)
+        {
+            if (rule1Answer[i] != rule1Inputs[i])
+            {
+                Debug.LogError("Index " + i + " are different. Answer (" + rule1Answer[i] + "). Inputted (" + rule1Inputs[i] + ")");
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private bool Rule3Correct()
     {
         if (rule3Answer.Length != rule3Input.Count)
@@ -955,6 +1069,58 @@ public class CruelSimpleton : MonoBehaviour {
             new List<string>(),
             new List<string>()
         };
+    }
+
+    private bool ThreeTickGoneBy()
+    {
+        if (rule1Inputs.Count < 3)
+        {
+            return false;
+        }
+
+        return rule1Inputs[rule1Inputs.Count - 1] == Event.Tick && rule1Inputs[rule1Inputs.Count - 2] == Event.Tick && rule1Inputs[rule1Inputs.Count - 3] == Event.Tick;
+
+    }
+
+    private void CheckEvents()
+    {
+        if (ModuleSolved)
+        {
+            return;
+        }
+
+        while (rule1Inputs.Count >= 2 && rule1Inputs[0] == Event.Tick && (rule1Inputs[1] == Event.Tick || rule1Inputs[1] == Event.MouseUp))
+            rule1Inputs.RemoveAt(1);
+
+        //if more than 2 tick have gone by, check to see if the answer is correct
+        //if the number of events equal the number of events in the answer, check the answer
+
+        if (ThreeTickGoneBy() || rule1Inputs.Count == rule1Answer.Count)
+        {
+            Debug.Log("Submitted: " + string.Join(", ", rule1Inputs.Select(e => e.ToString()).ToArray()));
+            Debug.Log("Expected: " + string.Join(", ", rule1Answer.Select(e => e.ToString()).ToArray()));
+
+            if (Rule1Correct())
+            {
+                GetComponent<KMBombModule>().HandlePass();
+                ModuleSolved = true;
+                return;
+            }
+
+            else
+            {
+                GetComponent<KMBombModule>().HandleStrike();
+                rule1Inputs.Clear();
+                return;
+            }
+        }
+
+
+
+        if (rule1Inputs.Count(e => e == Event.MouseUp) >= rule1Inputs.Count(e => e == Event.MouseDown))
+        {
+            
+        }
     }
 
 
