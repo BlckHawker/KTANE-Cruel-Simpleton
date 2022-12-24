@@ -9,8 +9,8 @@ using Rnd = UnityEngine.Random;
 
 public class CruelSimpleton : MonoBehaviour {
 
-   public KMBombInfo Bomb;
-   public KMAudio Audio;
+    public KMBombInfo Bomb;
+    public KMAudio Audio;
 
     public KMSelectable topLeftSection;
     public KMSelectable bottomLeftSection;
@@ -23,6 +23,8 @@ public class CruelSimpleton : MonoBehaviour {
     private string rule3Answer;
 
     private List<string> rule3Input;
+
+    private List<List<string>> rule2Input;
 
     private int rule7Answer;
 
@@ -41,7 +43,7 @@ public class CruelSimpleton : MonoBehaviour {
 
     //tells if the user started pressing the button for rule 5
     private bool rule5Started;
-    
+
 
     private float timeOffset;
 
@@ -53,7 +55,13 @@ public class CruelSimpleton : MonoBehaviour {
 
     int dashThreshold;
     int dotThreshold;
-    int submitThreshold;
+    int breakThreshold;
+    int rule3SubmitThreshold;
+    int rule2SubmitThreshold;
+
+    int rule2CurrentIndex;
+
+
 
     //tells if the module is submitting the morse code answer
     private int submitting;
@@ -61,11 +69,11 @@ public class CruelSimpleton : MonoBehaviour {
 
 
     static int ModuleIdCounter = 1;
-   int ModuleId;
-   private bool ModuleSolved;
+    int ModuleId;
+    private bool ModuleSolved;
 
 
-   void Awake () 
+    void Awake()
     {
         ModuleId = ModuleIdCounter++;
 
@@ -83,8 +91,15 @@ public class CruelSimpleton : MonoBehaviour {
 
     }
 
-    void Start () 
+    void Start()
     {
+
+        rule2Input = new List<List<string>>()
+        {
+            new List<string>(),
+            new List<string>(),
+            new List<string>()
+        };
 
         timeOffset = 2;
 
@@ -98,13 +113,18 @@ public class CruelSimpleton : MonoBehaviour {
 
         holdingStatus = false;
 
+        rule2CurrentIndex = 0;
+
         dashOrDot = 0;
 
         submitting = 0;
 
         dotThreshold = 50;
         dashThreshold = 150;
-        submitThreshold = 125;
+        rule3SubmitThreshold = 125;
+
+        breakThreshold = 125;
+        rule2SubmitThreshold = 300;
 
 
         Debug.Log("Unicorn: " + Unicorn());
@@ -135,13 +155,13 @@ public class CruelSimpleton : MonoBehaviour {
 
     }
 
-    void Update () {
+    void Update() {
         if (rule5Started && !ModuleSolved)
-        { 
+        {
             timeOffset -= Time.deltaTime;
         }
 
-        if(rule4Started && !ModuleSolved)
+        if (rule4Started && !ModuleSolved)
         {
             rule4StartingTime += Time.deltaTime;
         }
@@ -155,10 +175,76 @@ public class CruelSimpleton : MonoBehaviour {
             buttonPressedNum = 0;
             timeOffset = 2;
         }
-   }
+    }
 
     void FixedUpdate()
     {
+        if (Rule2())
+
+        {
+            if (holdingStatus && !ModuleSolved)
+            {
+                dashOrDot++;
+            }
+
+            if (dashOrDot != 0 && dashOrDot <= dotThreshold)
+            {
+                //play dot sound
+                Debug.Log("Dot Inputted");
+            }
+
+            if (dashOrDot > dotThreshold && dashOrDot <= dashThreshold)
+            {
+                //play dash sound
+                Debug.Log("Dash Inputted");
+            }
+
+            else if (dashOrDot > dashThreshold)
+            {
+                //play input clear sound
+                Debug.Log("Input Cleared");
+            }
+
+            else if (!holdingStatus && !ModuleSolved && rule2Input.Where(list => list.Any()).Any())
+            {
+                submitting++;
+            }
+
+            if (submitting == breakThreshold)
+            {
+                Debug.Log("BREAK");
+                rule2CurrentIndex++;
+            }
+
+            else if (submitting == rule2SubmitThreshold)
+            {
+                string answer = Rule2Answer();
+
+                Debug.Log("Submitted " + answer);
+                Debug.Log("Expected -... --- -...");
+
+
+                if (answer == "-... --- -...")
+                {
+                    ModuleSolved = true;
+                    submitting = 0;
+                    GetComponent<KMBombModule>().HandlePass();
+                }
+
+                else
+                {
+                    GetComponent<KMBombModule>().HandleStrike();
+                    ClearRule2Input();
+                    submitting = 0;
+
+                    Debug.LogError("First Section: " + string.Join("", rule2Input[0].ToArray()));
+                    Debug.LogError("Second Section: " + string.Join("", rule2Input[1].ToArray()));
+                    Debug.LogError("Third Section: " + string.Join("", rule2Input[2].ToArray()));
+
+                }
+            }
+        }
+
         if (Rule3())
         {
             if (holdingStatus && !ModuleSolved)
@@ -189,7 +275,7 @@ public class CruelSimpleton : MonoBehaviour {
                 submitting++;
             }
 
-            if (submitting == submitThreshold)
+            if (submitting == rule3SubmitThreshold)
             {
                 Debug.Log("Submitted " + string.Join(" ", rule3Input.ToArray()));
                 Debug.Log("Expected " + rule3Answer);
@@ -357,7 +443,7 @@ public class CruelSimpleton : MonoBehaviour {
             rule5Started = true;
             timeOffset = 2f;
             buttonPressedNum++;
-            
+
             Debug.Log("Button has been pressed " + buttonPressedNum + " times");
 
 
@@ -379,7 +465,7 @@ public class CruelSimpleton : MonoBehaviour {
 
 
         if (!rule6Active && !rule9Active)
-        { 
+        {
             GetComponent<KMBombModule>().HandleStrike();
             Debug.Log("Strike! Pressed the button when rule 6 didn't apply");
             return;
@@ -416,7 +502,7 @@ public class CruelSimpleton : MonoBehaviour {
     {
         blueButton.AddInteractionPunch(0.1f);
 
-        
+
 
         if (!Rule4())
         {
@@ -467,11 +553,11 @@ public class CruelSimpleton : MonoBehaviour {
         {
             return;
         }
-        
+
 
         if (rule7Active)
         {
-            rule7Answer = FindRule7Answer();   
+            rule7Answer = FindRule7Answer();
 
             if (sectionNum == rule7Answer)
             {
@@ -501,7 +587,7 @@ public class CruelSimpleton : MonoBehaviour {
             int index = rule8Input.Count - 1;
 
             if (rule8Input.Last() != rule8Answer[index])
-            { 
+            {
                 GetComponent<KMBombModule>().HandleStrike();
                 Debug.Log("Strike! Pressed section " + rule8Input.Last() + " insetead of section " + rule8Answer[index]);
                 rule8Input.Clear();
@@ -519,7 +605,7 @@ public class CruelSimpleton : MonoBehaviour {
         if (rule2Active || rule3Active)
         {
             if (sectionNum == 4)
-            { 
+            {
                 Debug.Log("Strike! Pressed button instead of the status light");
             }
 
@@ -548,14 +634,20 @@ public class CruelSimpleton : MonoBehaviour {
         statusLightButton.AddInteractionPunch(0.1f);
 
         bool rule1Active = Rule1();
+        bool rule2Active = Rule2();
         bool rule3Active = Rule3();
-
         bool rule4Active = Rule4();
         bool rule5Active = Rule5();
         bool rule6Active = Rule6();
         bool rule7Active = Rule7();
         bool rule8Active = Rule8();
         bool rule9Active = Rule9();
+
+        if (rule2Active && rule2CurrentIndex < 3)
+        {
+            submitting = 0;
+            holdingStatus = true;
+        }
 
         if (rule3Active)
         {
@@ -581,7 +673,34 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void StatusLightRelease()
     {
-        if (holdingStatus)
+        if (Rule2() && holdingStatus)
+        {
+            holdingStatus = false;
+
+            if (dashOrDot <= dotThreshold)
+            {
+                rule2Input[rule2CurrentIndex].Add(".");
+            }
+
+            else if (dashOrDot > dotThreshold && dashOrDot <= dashThreshold)
+            {
+                rule2Input[rule2CurrentIndex].Add("-");
+            }
+
+            else if (dashOrDot > dashThreshold)
+            {
+                rule2CurrentIndex = 0;
+
+                ClearRule2Input();
+            }
+
+            dashOrDot = 0;
+
+
+            Debug.Log("Input is now: " + Rule2Answer());
+        }
+
+        else if (Rule3() && holdingStatus)
         {
             holdingStatus = false;
 
@@ -595,13 +714,13 @@ public class CruelSimpleton : MonoBehaviour {
                 rule3Input.Add("-");
             }
 
-            else if(dashOrDot > dashThreshold)
+            else if (dashOrDot > dashThreshold)
             {
                 rule3Input.Clear();
             }
 
             dashOrDot = 0;
-            
+
 
             Debug.Log("Input is now: " + string.Join("", rule3Input.ToArray()));
         }
@@ -613,8 +732,8 @@ public class CruelSimpleton : MonoBehaviour {
     #region Find Answers
 
     private string FindRule3Answer()
-    { 
-        switch(Bomb.GetSerialNumberLetters().First())
+    {
+        switch (Bomb.GetSerialNumberLetters().First())
         {
             case 'A':
                 return ".-";
@@ -696,6 +815,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
     }
 
+
     private int FindRule7Answer()
     {
         int strikes = Bomb.GetStrikes();
@@ -711,12 +831,12 @@ public class CruelSimpleton : MonoBehaviour {
     private List<int> FindRule8Answer()
     {
         int modNum = Bomb.GetModuleNames().Count();
-        
+
         string[] strArr = modNum.ToString().Split();
 
         List<int> answer = new List<int>();
 
-        foreach(string str in strArr)
+        foreach (string str in strArr)
         {
             int num = int.Parse(str) % 4;
 
@@ -821,6 +941,22 @@ public class CruelSimpleton : MonoBehaviour {
 
         return true;
     }
+
+    private string Rule2Answer()
+    {
+        return string.Join("", rule2Input[0].ToArray()) + " " + string.Join("", rule2Input[1].ToArray()) + " " + string.Join("", rule2Input[2].ToArray());
+    }
+
+    private void ClearRule2Input()
+    {
+        rule2Input = new List<List<string>>()
+        {
+            new List<string>(),
+            new List<string>(),
+            new List<string>()
+        };
+    }
+
 
     #endregion
 
