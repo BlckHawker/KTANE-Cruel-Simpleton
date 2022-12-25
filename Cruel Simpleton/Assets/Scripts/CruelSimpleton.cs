@@ -18,6 +18,11 @@ public class CruelSimpleton : MonoBehaviour {
     public KMSelectable statusLightButton;
     public KMSelectable blueButton;
 
+    public TextMesh buttonText;
+    
+    //tells which rule the user is on for the unicorn
+    private int unicornRuleNum;
+
     private float initialBombTime;
 
     private string rule3Answer;
@@ -94,6 +99,8 @@ public class CruelSimpleton : MonoBehaviour {
     {
         ModuleId = ModuleIdCounter++;
 
+        blueButton.OnInteract += delegate () { SectionPress(blueButton); return false; };
+
         blueButton.OnInteract += delegate () { BlueButton(); return false; };
 
         blueButton.OnInteractEnded += delegate () { BlueButtonRelease(); };
@@ -104,7 +111,6 @@ public class CruelSimpleton : MonoBehaviour {
         topLeftSection.OnInteract += delegate () { SectionPress(topLeftSection); return false; };
         bottomLeftSection.OnInteract += delegate () { SectionPress(bottomLeftSection); return false; };
         bottomRightSection.OnInteract += delegate () { SectionPress(bottomRightSection); return false; };
-        blueButton.OnInteract += delegate () { SectionPress(blueButton); return false; };
 
     }
 
@@ -144,6 +150,7 @@ public class CruelSimpleton : MonoBehaviour {
         breakThreshold = 125;
         rule2SubmitThreshold = 300;
 
+        
 
 
         Debug.Log("Unicorn: " + Unicorn());
@@ -157,24 +164,35 @@ public class CruelSimpleton : MonoBehaviour {
         Debug.Log("Rule 8 " + Rule8());
         Debug.Log("Rule 9 " + Rule9());
 
-        if (Rule1())
+        if (Unicorn())
         {
+            unicornRuleNum = 1;
             rule1Answer = FindRule1Answer();
-
             Debug.Log("Expecting: " + string.Join(", ", rule1Answer.Select(e => e.ToString()).ToArray()));
 
+            rule3Input = new List<string>();
+            rule3Answer = FindRule3Answer();
 
+            rule8Answer = FindRule8Answer();
+            rule8Input = null;
+            LogAnswer(8);
         }
 
-        if (Rule3())
+        else if (Rule1())
         {
-            rule3Answer = FindRule3Answer();
             rule3Input = new List<string>();
+            rule3Answer = FindRule3Answer();
+        }
+
+        else if (Rule3())
+        {
+            rule3Input = new List<string>();
+            rule3Answer = FindRule3Answer();
             Debug.Log("Expecting " + rule3Answer);
 
         }
 
-        if (Rule8())
+        else if (Rule8())
         {
             rule8Answer = FindRule8Answer();
             rule8Input = null;
@@ -185,7 +203,7 @@ public class CruelSimpleton : MonoBehaviour {
 
     void Update() 
     {
-        if (Rule1() && !ModuleSolved)
+        if ((Rule1() || (Unicorn() && unicornRuleNum == 1)) && !ModuleSolved)
         {
             //Debug.Log(string.Join(", ", rule1Inputs.Select(e => e.ToString()).ToArray()));
 
@@ -217,12 +235,15 @@ public class CruelSimpleton : MonoBehaviour {
         if (rule4Started && !ModuleSolved)
         {
             rule4StartingTime += Time.deltaTime;
+
+            Debug.Log("Current Time Held: " + string.Format("{0:0.00}", Math.Abs(rule4EndingTime - rule4StartingTime)));
+            
         }
     }
 
     void FixedUpdate()
     {
-        if (Rule2())
+        if ((Unicorn() && unicornRuleNum == 2) || Rule2())
         {
             if (holdingStatus && !ModuleSolved)
             {
@@ -268,9 +289,23 @@ public class CruelSimpleton : MonoBehaviour {
 
                 if (answer == "-... --- -...")
                 {
-                    ModuleSolved = true;
-                    submitting = 0;
-                    GetComponent<KMBombModule>().HandlePass();
+                    if (Unicorn() && unicornRuleNum == 2)
+                    {
+                        //play stage clear sound
+
+                        unicornRuleNum++;
+                        Debug.Log("Stage cleared. Now on stage " + unicornRuleNum);
+
+                    }
+
+                    else
+                    {
+                        submitting = 0;
+                        GetComponent<KMBombModule>().HandlePass();
+                        ModuleSolved = true;
+                        buttonText.text = "VICTORY";
+                    }
+
                 }
 
                 else
@@ -287,7 +322,7 @@ public class CruelSimpleton : MonoBehaviour {
             }
         }
 
-        if (Rule3())
+        else if ((Unicorn() && unicornRuleNum == 3) || Rule3())
         {
             if (holdingStatus && !ModuleSolved)
             {
@@ -325,9 +360,21 @@ public class CruelSimpleton : MonoBehaviour {
 
                 if (Rule3Correct())
                 {
-                    ModuleSolved = true;
-                    submitting = 0;
-                    GetComponent<KMBombModule>().HandlePass();
+                    if (Unicorn() && unicornRuleNum == 3)
+                    {
+                        //play clear stage sound
+                        unicornRuleNum++;
+                        Debug.Log("Stage Cleared. Now on stage " + unicornRuleNum);
+                    }
+
+                    else
+                    {
+                        ModuleSolved = true;
+                        submitting = 0;
+                        GetComponent<KMBombModule>().HandlePass();
+                        buttonText.text = "VICTORY";
+                    }
+
                 }
 
                 else
@@ -456,6 +503,17 @@ public class CruelSimpleton : MonoBehaviour {
     #region Events
     private void BlueButton()
     {
+        bool unicorn1Active = Unicorn() && unicornRuleNum == 1;
+        bool unicorn2Active = Unicorn() && unicornRuleNum == 2;
+        bool unicorn3Active = Unicorn() && unicornRuleNum == 3;
+        bool unicorn4Active = Unicorn() && unicornRuleNum == 4;
+        bool unicorn5Active = Unicorn() && unicornRuleNum == 5;
+        bool unicorn6Active = Unicorn() && unicornRuleNum == 6;
+        bool unicorn7Active = Unicorn() && unicornRuleNum == 7;
+        bool unicorn8Active = Unicorn() && unicornRuleNum == 8;
+        bool unicorn9Active = Unicorn() && unicornRuleNum == 9;
+
+
         bool rule1Active = Rule1();
         bool rule2Active = Rule2();
         bool rule3Active = Rule3();
@@ -471,7 +529,7 @@ public class CruelSimpleton : MonoBehaviour {
             return;
         }
 
-        if (rule1Active)
+        if (rule1Active || unicorn1Active)
         {
             if (!mouseDown)
             {
@@ -484,7 +542,7 @@ public class CruelSimpleton : MonoBehaviour {
             return;
         }
 
-        if (rule4Active)
+        if (rule4Active || unicorn4Active)
         {
             rule4StartingTime = Time.time;
             rule4EndingTime = rule4StartingTime;
@@ -494,7 +552,7 @@ public class CruelSimpleton : MonoBehaviour {
 
 
 
-        if (rule5Active)
+        if (rule5Active || unicorn5Active)
         {
             rule5Started = true;
             timeOffset = 2f;
@@ -506,28 +564,43 @@ public class CruelSimpleton : MonoBehaviour {
             if (buttonPressedNum == 69)
             {
                 rule5Started = false;
-                GetComponent<KMBombModule>().HandlePass();
-                ModuleSolved = true;
-                Debug.Log("Module solved: " + ModuleSolved);
+
+                if (Unicorn() && unicornRuleNum == 5)
+                {
+                    //play clear stage sound
+                    unicornRuleNum++;
+                    Debug.Log("Stage cleared. Now on stage " + unicornRuleNum);
+                }
+
+                else
+                {
+                    GetComponent<KMBombModule>().HandlePass();
+                    ModuleSolved = true;
+                    buttonText.text = "VICTORY";
+                }
+
             }
             return;
         }
 
 
-        if (rule2Active || rule3Active || rule7Active || rule8Active)
+        if (rule2Active || unicorn2Active || 
+            rule3Active || unicorn3Active || 
+            rule7Active || unicorn7Active ||
+            rule8Active || unicorn8Active)
         {
             return;
         }
 
 
-        if (!rule6Active && !rule9Active)
+        if (!rule6Active && !unicorn6Active && !rule9Active && !unicorn9Active)
         {
             GetComponent<KMBombModule>().HandleStrike();
             Debug.Log("Strike! Pressed the button when rule 6 didn't apply");
             return;
         }
 
-        if (rule6Active)
+        if (rule6Active || unicorn6Active)
         {
             int seconds = (int)Bomb.GetTime() % 60;
 
@@ -535,22 +608,35 @@ public class CruelSimpleton : MonoBehaviour {
             {
                 GetComponent<KMBombModule>().HandleStrike();
                 Debug.Log("Strike! Pressed the button when the seconds were " + seconds + ", which is not a multiple of 10");
-                return;
             }
 
             else
             {
-                GetComponent<KMBombModule>().HandlePass();
-                ModuleSolved = true;
-                return;
+                if (Unicorn() && unicornRuleNum == 6)
+                {
+                    //play stage clear sound
+                    unicornRuleNum++;
+                    Debug.Log("Stage cleared. Now on stage " + unicornRuleNum);
+                }
+
+                else
+                {
+                    GetComponent<KMBombModule>().HandlePass();
+                    ModuleSolved = true;
+                    buttonText.text = "VICTORY";
+                }
             }
+
+            return;
+
         }
 
 
-        if (rule9Active)
+        if (rule9Active || unicorn9Active)
         {
             GetComponent<KMBombModule>().HandlePass();
             ModuleSolved = true;
+            buttonText.text = "VICTORY";
         }
     }
 
@@ -571,7 +657,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
         mouseDown = false;
 
-        if (!Rule4())
+        if (!Rule4() && !(Unicorn() && unicornRuleNum == 4))
         {
             return;
         }
@@ -585,8 +671,21 @@ public class CruelSimpleton : MonoBehaviour {
 
         if (minValue <= deltaTime && deltaTime <= maxValue)
         {
-            GetComponent<KMBombModule>().HandlePass();
-            ModuleSolved = true;
+            if (Unicorn() && unicornRuleNum == 4)
+            {
+                //play clear stage sound
+                unicornRuleNum++;
+                Debug.Log("Stage cleared. Now on stage " + unicornRuleNum);
+
+            }
+
+            else
+            {
+                GetComponent<KMBombModule>().HandlePass();
+                ModuleSolved = true;
+                buttonText.text = "VICTORY";
+            }
+
         }
 
         else
@@ -606,6 +705,17 @@ public class CruelSimpleton : MonoBehaviour {
         string sectionName = SectionToName(section);
         int sectionNum = SectionToInt(section);
 
+        bool unicorn1Active = Unicorn() && unicornRuleNum == 1;
+        bool unicorn2Active = Unicorn() && unicornRuleNum == 2;
+        bool unicorn3Active = Unicorn() && unicornRuleNum == 3;
+        bool unicorn4Active = Unicorn() && unicornRuleNum == 4;
+        bool unicorn5Active = Unicorn() && unicornRuleNum == 5;
+        bool unicorn6Active = Unicorn() && unicornRuleNum == 6;
+        bool unicorn7Active = Unicorn() && unicornRuleNum == 7;
+        bool unicorn8Active = Unicorn() && unicornRuleNum == 8;
+        bool unicorn9Active = Unicorn() && unicornRuleNum == 9;
+
+
         bool rule1Active = Rule1();
         bool rule2Active = Rule2();
         bool rule3Active = Rule3();
@@ -616,33 +726,51 @@ public class CruelSimpleton : MonoBehaviour {
         bool rule8Active = Rule8();
         bool rule9Active = Rule9();
 
+
+
+
         if (ModuleSolved)
         {
             return;
         }
 
 
-        if (rule7Active)
+        if (rule7Active || unicorn7Active)
         {
             rule7Answer = FindRule7Answer();
 
             if (sectionNum == rule7Answer)
             {
-                GetComponent<KMBombModule>().HandlePass();
-                ModuleSolved = true;
-                return;
+                if (Unicorn() && unicornRuleNum == 7)
+                {
+                    //play stage clear sound
+
+                    unicornRuleNum++;
+                    Debug.Log("Stage cleared. Now on stage " + unicornRuleNum);
+
+                }
+
+                else
+                {
+                    GetComponent<KMBombModule>().HandlePass();
+                    ModuleSolved = true;
+                    buttonText.text = "VICTORY";
+                }
+
             }
 
             else
             {
                 GetComponent<KMBombModule>().HandleStrike();
                 Debug.Log("Strike! Pressed section " + sectionNum + " insetead of section " + rule7Answer);
-                return;
             }
+
+            return;
+
         }
 
 
-        if (rule8Active)
+        if (rule8Active || unicorn8Active)
         {
             if (rule8Input == null)
             {
@@ -663,13 +791,27 @@ public class CruelSimpleton : MonoBehaviour {
 
             if (rule8Input.Count == rule8Answer.Count)
             {
-                GetComponent<KMBombModule>().HandlePass();
-                ModuleSolved = true;
+                if (Unicorn() && unicornRuleNum == 8)
+                {
+                    //play stage clear sound
+                    unicornRuleNum++;
+                    Debug.Log("Stage cleared. Now on stage " + unicornRuleNum);
+
+                }
+
+                else
+                {
+                    GetComponent<KMBombModule>().HandlePass();
+                    ModuleSolved = true;
+                    buttonText.text = "VICTORY";
+                }
+
                 return;
             }
         }
 
-        if (rule2Active || rule3Active)
+        if (rule2Active || unicorn2Active ||
+            rule3Active || unicorn3Active)
         {
             if (sectionNum == 4)
             {
@@ -685,7 +827,11 @@ public class CruelSimpleton : MonoBehaviour {
             return;
         }
 
-        if (rule1Active || rule4Active || rule5Active || rule6Active || rule9Active)
+        if (rule1Active || unicorn1Active ||
+            rule4Active || unicorn4Active ||
+            rule5Active || unicorn5Active ||
+            rule6Active || unicorn6Active || 
+            rule9Active || unicorn9Active)
         {
             if (sectionNum != 4)
             {
@@ -710,19 +856,30 @@ public class CruelSimpleton : MonoBehaviour {
         bool rule8Active = Rule8();
         bool rule9Active = Rule9();
 
-        if (rule2Active && rule2CurrentIndex < 3)
+        bool unicorn1Active = Unicorn() && unicornRuleNum == 1;
+        bool unicorn2Active = Unicorn() && unicornRuleNum == 2;
+        bool unicorn3Active = Unicorn() && unicornRuleNum == 3;
+        bool unicorn4Active = Unicorn() && unicornRuleNum == 4;
+        bool unicorn5Active = Unicorn() && unicornRuleNum == 5;
+        bool unicorn6Active = Unicorn() && unicornRuleNum == 6;
+        bool unicorn7Active = Unicorn() && unicornRuleNum == 7;
+        bool unicorn8Active = Unicorn() && unicornRuleNum == 8;
+        bool unicorn9Active = Unicorn() && unicornRuleNum == 9;
+
+        if ((rule2Active || unicorn2Active) && rule2CurrentIndex < 3)
         {
             submitting = 0;
             holdingStatus = true;
         }
 
-        if (rule3Active)
+        if (rule3Active || unicorn3Active)
         {
             submitting = 0;
             holdingStatus = true;
         }
 
-        if (rule7Active || rule8Active)
+        if (rule7Active || unicorn7Active ||
+            rule8Active || unicorn8Active)
         {
             Debug.Log("Strike! Pressed status light instead of one of the sections");
             GetComponent<KMBombModule>().HandleStrike();
@@ -730,7 +887,11 @@ public class CruelSimpleton : MonoBehaviour {
         }
 
 
-        if (rule1Active || rule4Active || rule5Active || rule6Active || rule9Active)
+        if (rule1Active || unicorn1Active ||
+            rule4Active || unicorn4Active ||
+            rule5Active || unicorn5Active || 
+            rule6Active || unicorn6Active || 
+            rule9Active || unicorn9Active)
         {
             Debug.Log("Strike! Pressed status light instead of the button");
             GetComponent<KMBombModule>().HandleStrike();
@@ -740,7 +901,10 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void StatusLightRelease()
     {
-        if (Rule2() && holdingStatus)
+        bool unicorn2Active = Unicorn() && unicornRuleNum == 2;
+        bool unicorn3Active = Unicorn() && unicornRuleNum == 3;
+
+        if ((Rule2() || unicorn2Active) && holdingStatus)
         {
             holdingStatus = false;
 
@@ -767,7 +931,7 @@ public class CruelSimpleton : MonoBehaviour {
             Debug.Log("Input is now: " + Rule2Answer());
         }
 
-        else if (Rule3() && holdingStatus)
+        else if ((Rule3() || unicorn3Active) && holdingStatus)
         {
             holdingStatus = false;
 
@@ -912,6 +1076,11 @@ public class CruelSimpleton : MonoBehaviour {
     private int FindRule7Answer()
     {
         int strikes = Bomb.GetStrikes();
+
+        if (strikes == 0)
+        {
+            return 4;
+        }
 
         while (strikes > 4)
         {
@@ -1102,8 +1271,21 @@ public class CruelSimpleton : MonoBehaviour {
 
             if (Rule1Correct())
             {
-                GetComponent<KMBombModule>().HandlePass();
-                ModuleSolved = true;
+                if (Unicorn() && unicornRuleNum == 1)
+                {
+                    //play stage clear sound
+                    unicornRuleNum++;
+                    Debug.Log("Stage cleared. Now on stage " + unicornRuleNum);
+
+                }
+
+                else
+                {
+                    GetComponent<KMBombModule>().HandlePass();
+                    ModuleSolved = true;
+                    buttonText.text = "VICTORY";
+                }
+
                 return;
             }
 
@@ -1113,13 +1295,6 @@ public class CruelSimpleton : MonoBehaviour {
                 rule1Inputs.Clear();
                 return;
             }
-        }
-
-
-
-        if (rule1Inputs.Count(e => e == Event.MouseUp) >= rule1Inputs.Count(e => e == Event.MouseDown))
-        {
-            
         }
     }
 

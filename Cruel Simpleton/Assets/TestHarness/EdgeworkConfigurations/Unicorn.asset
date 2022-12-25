@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Name: Unicorn
   m_EditorClassIdentifier: 
   SerialNumberType: 2
-  CustomSerialNumber: UUUUUU
+  CustomSerialNumber: 111UU1
   TwoFactorResetTime: 30
   Widgets:
   - Type: 0
