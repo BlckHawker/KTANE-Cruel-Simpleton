@@ -1095,13 +1095,16 @@ public class CruelSimpleton : MonoBehaviour {
     {
         int modNum = Bomb.GetModuleNames().Count();
 
-        string[] strArr = modNum.ToString().Split();
+        Debug.Log("Mod count: " + modNum);
+
+        char[] charArr = modNum.ToString().ToCharArray();
+
 
         List<int> answer = new List<int>();
 
-        foreach (string str in strArr)
+        foreach (char str in charArr)
         {
-            int num = int.Parse(str) % 4;
+            int num = int.Parse("" + str) % 4;
 
             if (num == 0)
             {
