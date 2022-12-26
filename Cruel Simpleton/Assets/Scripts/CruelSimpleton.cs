@@ -355,7 +355,7 @@ public class CruelSimpleton : MonoBehaviour {
 
             if (submitting == rule3SubmitThreshold)
             {
-                Debug.Log("Submitted " + string.Join(" ", rule3Input.ToArray()));
+                Debug.Log("Submitted " + string.Join("", rule3Input.ToArray()));
                 Debug.Log("Expected " + rule3Answer);
 
 
