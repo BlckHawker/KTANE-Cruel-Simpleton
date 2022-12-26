@@ -311,13 +311,14 @@ public class CruelSimpleton : MonoBehaviour {
                 else
                 {
                     GetComponent<KMBombModule>().HandleStrike();
-                    ClearRule2Input();
-                    submitting = 0;
 
                     Debug.LogError("First Section: " + string.Join("", rule2Input[0].ToArray()));
                     Debug.LogError("Second Section: " + string.Join("", rule2Input[1].ToArray()));
                     Debug.LogError("Third Section: " + string.Join("", rule2Input[2].ToArray()));
 
+                    ClearRule2Input();
+                    submitting = 0;
+                    rule2CurrentIndex = 0;
                 }
             }
         }
