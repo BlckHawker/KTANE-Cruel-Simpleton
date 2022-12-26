@@ -194,11 +194,16 @@ public class CruelSimpleton : MonoBehaviour {
             Debug.LogFormat("[Cruel Simpleton #{0}] Expecting: {1}", ModuleId, string.Join(", ", rule1Answer.Select(e => e.ToString()).ToArray()));
         }
 
+        else if (rule2)
+        {
+            Debug.LogFormat("[Cruel Simpleton #{0}] Expecting: -... --- -...", ModuleId);
+
+        }
+
         else if (rule3)
         {
             rule3Answer = FindRule3Answer();
-            Debug.Log("Expecting " + rule3Answer);
-
+            Debug.LogFormat("[Cruel Simpleton #{0}] Expecting: {1}", ModuleId, rule3Answer);
         }
 
         else if (Rule8())
@@ -292,9 +297,7 @@ public class CruelSimpleton : MonoBehaviour {
             {
                 string answer = Rule2Answer();
 
-                Debug.Log("Submitted " + answer);
-                Debug.Log("Expected -... --- -...");
-
+                Debug.LogFormat("[Cruel Simpleton #{0}] Submitted {1}", ModuleId, answer);
 
                 if (answer == "-... --- -...")
                 {
@@ -364,9 +367,7 @@ public class CruelSimpleton : MonoBehaviour {
 
             if (submitting == rule3SubmitThreshold)
             {
-                Debug.Log("Submitted " + string.Join("", rule3Input.ToArray()));
-                Debug.Log("Expected " + rule3Answer);
-
+                Debug.LogFormat("[Cruel Simpleton #{0}] Submitted {1}", ModuleId, string.Join("",rule3Input.ToArray()));
 
                 if (Rule3Correct())
                 {
@@ -1287,7 +1288,7 @@ public class CruelSimpleton : MonoBehaviour {
                 {
                     //play stage clear sound
                     unicornRuleNum++;
-                    Debug.Log("Stage cleared. Now on stage " + unicornRuleNum);
+                    Debug.LogFormat("[Cruel Simpleton #{0}] Stage cleared. Now on stage {1} ", ModuleId, unicornRuleNum);
 
                 }
 
