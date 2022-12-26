@@ -86,6 +86,14 @@ public class CruelSimpleton : MonoBehaviour {
         Tick
     }
 
+    private bool unicorn;
+    private bool rule1;
+    private bool rule2;
+    private bool rule3;
+    private bool rule4;
+    private bool rule5;
+
+
     private List<Event> rule1Inputs;
 
     private List<Event> rule1Answer;
@@ -125,6 +133,10 @@ public class CruelSimpleton : MonoBehaviour {
             new List<string>()
         };
 
+        rule2CurrentIndex = 0;
+
+        rule3Input = new List<string>();
+
         timeOffset = 2;
 
         initialBombTime = Bomb.GetTime();
@@ -137,7 +149,6 @@ public class CruelSimpleton : MonoBehaviour {
 
         holdingStatus = false;
 
-        rule2CurrentIndex = 0;
 
         dashOrDot = 0;
 
@@ -150,27 +161,26 @@ public class CruelSimpleton : MonoBehaviour {
         breakThreshold = 125;
         rule2SubmitThreshold = 300;
 
-        
+        unicorn = Unicorn();
+        rule1 = Rule1();
+        rule2 = Rule2();
+        rule3 = Rule3();
+        rule4 = Rule4();
+        rule5 = Rule5();
 
 
-        Debug.Log("Unicorn: " + Unicorn());
-        Debug.Log("Rule 1 " + Rule1());
-        Debug.Log("Rule 2 " + Rule2());
-        Debug.Log("Rule 3 " + Rule3());
-        Debug.Log("Rule 4 " + Rule4());
-        Debug.Log("Rule 5 " + Rule5());
-        Debug.Log("Rule 6 " + Rule6());
-        Debug.Log("Rule 7 " + Rule7());
-        Debug.Log("Rule 8 " + Rule8());
-        Debug.Log("Rule 9 " + Rule9());
+        Debug.LogFormat("[Cruel Simpleton #{0}] Unicorn Rule: {1}", ModuleId, unicorn);
+        Debug.LogFormat("[Cruel Simpleton #{0}] Rule 1: {1}", ModuleId, rule1);
+        Debug.LogFormat("[Cruel Simpleton #{0}] Rule 2: {1}", ModuleId, rule2);
+        Debug.LogFormat("[Cruel Simpleton #{0}] Rule 3: {1}", ModuleId, rule3);
+        Debug.LogFormat("[Cruel Simpleton #{0}] Rule 4: {1}", ModuleId, rule4);
+        Debug.LogFormat("[Cruel Simpleton #{0}] Rule 5: {1}", ModuleId, rule5);
 
-        if (Unicorn())
+        if (unicorn)
         {
             unicornRuleNum = 1;
             rule1Answer = FindRule1Answer();
-            Debug.Log("Expecting: " + string.Join(", ", rule1Answer.Select(e => e.ToString()).ToArray()));
 
-            rule3Input = new List<string>();
             rule3Answer = FindRule3Answer();
 
             rule8Answer = FindRule8Answer();
@@ -178,15 +188,14 @@ public class CruelSimpleton : MonoBehaviour {
             LogAnswer(8);
         }
 
-        else if (Rule1())
+        else if (rule1)
         {
-            rule3Input = new List<string>();
-            rule3Answer = FindRule3Answer();
+            rule1Answer = FindRule1Answer();
+            Debug.LogFormat("[Cruel Simpleton #{0}] Expecting: {1}", ModuleId, string.Join(", ", rule1Answer.Select(e => e.ToString()).ToArray()));
         }
 
-        else if (Rule3())
+        else if (rule3)
         {
-            rule3Input = new List<string>();
             rule3Answer = FindRule3Answer();
             Debug.Log("Expecting " + rule3Answer);
 
@@ -203,7 +212,7 @@ public class CruelSimpleton : MonoBehaviour {
 
     void Update() 
     {
-        if ((Rule1() || (Unicorn() && unicornRuleNum == 1)) && !ModuleSolved)
+        if ((rule1 || (unicorn && unicornRuleNum == 1)) && !ModuleSolved)
         {
             //Debug.Log(string.Join(", ", rule1Inputs.Select(e => e.ToString()).ToArray()));
 
@@ -243,7 +252,7 @@ public class CruelSimpleton : MonoBehaviour {
 
     void FixedUpdate()
     {
-        if ((Unicorn() && unicornRuleNum == 2) || Rule2())
+        if ((unicorn && unicornRuleNum == 2) || rule2)
         {
             if (holdingStatus && !ModuleSolved)
             {
@@ -289,7 +298,7 @@ public class CruelSimpleton : MonoBehaviour {
 
                 if (answer == "-... --- -...")
                 {
-                    if (Unicorn() && unicornRuleNum == 2)
+                    if (unicorn && unicornRuleNum == 2)
                     {
                         //play stage clear sound
 
@@ -323,7 +332,7 @@ public class CruelSimpleton : MonoBehaviour {
             }
         }
 
-        else if ((Unicorn() && unicornRuleNum == 3) || Rule3())
+        else if ((unicorn && unicornRuleNum == 3) || rule3)
         {
             if (holdingStatus && !ModuleSolved)
             {
@@ -361,7 +370,7 @@ public class CruelSimpleton : MonoBehaviour {
 
                 if (Rule3Correct())
                 {
-                    if (Unicorn() && unicornRuleNum == 3)
+                    if (unicorn && unicornRuleNum == 3)
                     {
                         //play clear stage sound
                         unicornRuleNum++;
@@ -414,7 +423,7 @@ public class CruelSimpleton : MonoBehaviour {
             return false;
         }
 
-        return !Unicorn();
+        return !unicorn;
     }
 
     private bool Rule2()
@@ -425,7 +434,7 @@ public class CruelSimpleton : MonoBehaviour {
             return false;
         }
 
-        return !Unicorn() && !Rule1();
+        return !unicorn && !rule1;
     }
 
     private bool Rule3()
@@ -436,7 +445,7 @@ public class CruelSimpleton : MonoBehaviour {
             return false;
         }
 
-        return !Unicorn() && !Rule1() && !Rule2();
+        return !unicorn && !rule1 && !rule2;
     }
 
     private bool Rule4()
@@ -447,7 +456,7 @@ public class CruelSimpleton : MonoBehaviour {
             return false;
         }
 
-        return !Unicorn() && !Rule1() && !Rule2() && !Rule3();
+        return !unicorn && !rule1 && !rule2 && !rule3;
     }
 
     private bool Rule5()
@@ -459,7 +468,7 @@ public class CruelSimpleton : MonoBehaviour {
             return false;
         }
 
-        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4();
+        return !unicorn && !rule1 && !rule2 && !rule3 && !rule4;
     }
 
     private bool Rule6()
@@ -470,7 +479,7 @@ public class CruelSimpleton : MonoBehaviour {
             return false;
         }
 
-        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4() && !Rule5();
+        return !unicorn && !rule1 && !rule2 && !rule3 && !rule4 && !rule5;
     }
 
     private bool Rule7()
@@ -480,7 +489,7 @@ public class CruelSimpleton : MonoBehaviour {
             return false;
         }
 
-        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4() && !Rule5() && !Rule6();
+        return !unicorn && !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6();
     }
 
     private bool Rule8()
@@ -491,12 +500,12 @@ public class CruelSimpleton : MonoBehaviour {
             return false;
         }
 
-        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4() && !Rule5() && !Rule6() && !Rule7();
+        return !unicorn && !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7();
     }
 
     private bool Rule9()
     {
-        return !Unicorn() && !Rule1() && !Rule2() && !Rule3() && !Rule4() && !Rule5() && !Rule6() && !Rule7() && !Rule8();
+        return !unicorn && !rule1 && !rule2 && !rule3 && !rule4 && !rule5 && !Rule6() && !Rule7() && !Rule8();
     }
 
     #endregion
@@ -504,22 +513,22 @@ public class CruelSimpleton : MonoBehaviour {
     #region Events
     private void BlueButton()
     {
-        bool unicorn1Active = Unicorn() && unicornRuleNum == 1;
-        bool unicorn2Active = Unicorn() && unicornRuleNum == 2;
-        bool unicorn3Active = Unicorn() && unicornRuleNum == 3;
-        bool unicorn4Active = Unicorn() && unicornRuleNum == 4;
-        bool unicorn5Active = Unicorn() && unicornRuleNum == 5;
-        bool unicorn6Active = Unicorn() && unicornRuleNum == 6;
-        bool unicorn7Active = Unicorn() && unicornRuleNum == 7;
-        bool unicorn8Active = Unicorn() && unicornRuleNum == 8;
-        bool unicorn9Active = Unicorn() && unicornRuleNum == 9;
+        bool unicorn1Active = unicorn && unicornRuleNum == 1;
+        bool unicorn2Active = unicorn && unicornRuleNum == 2;
+        bool unicorn3Active = unicorn && unicornRuleNum == 3;
+        bool unicorn4Active = unicorn && unicornRuleNum == 4;
+        bool unicorn5Active = unicorn && unicornRuleNum == 5;
+        bool unicorn6Active = unicorn && unicornRuleNum == 6;
+        bool unicorn7Active = unicorn && unicornRuleNum == 7;
+        bool unicorn8Active = unicorn && unicornRuleNum == 8;
+        bool unicorn9Active = unicorn && unicornRuleNum == 9;
 
 
-        bool rule1Active = Rule1();
-        bool rule2Active = Rule2();
-        bool rule3Active = Rule3();
-        bool rule4Active = Rule4();
-        bool rule5Active = Rule5();
+        bool rule1Active = rule1;
+        bool rule2Active = rule2;
+        bool rule3Active = rule3;
+        bool rule4Active = rule4;
+        bool rule5Active = rule5;
         bool rule6Active = Rule6();
         bool rule7Active = Rule7();
         bool rule8Active = Rule8();
@@ -566,7 +575,7 @@ public class CruelSimpleton : MonoBehaviour {
             {
                 rule5Started = false;
 
-                if (Unicorn() && unicornRuleNum == 5)
+                if (unicorn && unicornRuleNum == 5)
                 {
                     //play clear stage sound
                     unicornRuleNum++;
@@ -613,7 +622,7 @@ public class CruelSimpleton : MonoBehaviour {
 
             else
             {
-                if (Unicorn() && unicornRuleNum == 6)
+                if (unicorn && unicornRuleNum == 6)
                 {
                     //play stage clear sound
                     unicornRuleNum++;
@@ -658,7 +667,7 @@ public class CruelSimpleton : MonoBehaviour {
         }
         mouseDown = false;
 
-        if (!Rule4() && !(Unicorn() && unicornRuleNum == 4))
+        if (!rule4 && !(unicorn && unicornRuleNum == 4))
         {
             return;
         }
@@ -672,7 +681,7 @@ public class CruelSimpleton : MonoBehaviour {
 
         if (minValue <= deltaTime && deltaTime <= maxValue)
         {
-            if (Unicorn() && unicornRuleNum == 4)
+            if (unicorn && unicornRuleNum == 4)
             {
                 //play clear stage sound
                 unicornRuleNum++;
@@ -706,22 +715,22 @@ public class CruelSimpleton : MonoBehaviour {
         string sectionName = SectionToName(section);
         int sectionNum = SectionToInt(section);
 
-        bool unicorn1Active = Unicorn() && unicornRuleNum == 1;
-        bool unicorn2Active = Unicorn() && unicornRuleNum == 2;
-        bool unicorn3Active = Unicorn() && unicornRuleNum == 3;
-        bool unicorn4Active = Unicorn() && unicornRuleNum == 4;
-        bool unicorn5Active = Unicorn() && unicornRuleNum == 5;
-        bool unicorn6Active = Unicorn() && unicornRuleNum == 6;
-        bool unicorn7Active = Unicorn() && unicornRuleNum == 7;
-        bool unicorn8Active = Unicorn() && unicornRuleNum == 8;
-        bool unicorn9Active = Unicorn() && unicornRuleNum == 9;
+        bool unicorn1Active = unicorn && unicornRuleNum == 1;
+        bool unicorn2Active = unicorn && unicornRuleNum == 2;
+        bool unicorn3Active = unicorn && unicornRuleNum == 3;
+        bool unicorn4Active = unicorn && unicornRuleNum == 4;
+        bool unicorn5Active = unicorn && unicornRuleNum == 5;
+        bool unicorn6Active = unicorn && unicornRuleNum == 6;
+        bool unicorn7Active = unicorn && unicornRuleNum == 7;
+        bool unicorn8Active = unicorn && unicornRuleNum == 8;
+        bool unicorn9Active = unicorn && unicornRuleNum == 9;
 
 
-        bool rule1Active = Rule1();
-        bool rule2Active = Rule2();
-        bool rule3Active = Rule3();
-        bool rule4Active = Rule4();
-        bool rule5Active = Rule5();
+        bool rule1Active = rule1;
+        bool rule2Active = rule2;
+        bool rule3Active = rule3;
+        bool rule4Active = rule4;
+        bool rule5Active = rule5;
         bool rule6Active = Rule6();
         bool rule7Active = Rule7();
         bool rule8Active = Rule8();
@@ -742,7 +751,7 @@ public class CruelSimpleton : MonoBehaviour {
 
             if (sectionNum == rule7Answer)
             {
-                if (Unicorn() && unicornRuleNum == 7)
+                if (unicorn && unicornRuleNum == 7)
                 {
                     //play stage clear sound
 
@@ -792,7 +801,7 @@ public class CruelSimpleton : MonoBehaviour {
 
             if (rule8Input.Count == rule8Answer.Count)
             {
-                if (Unicorn() && unicornRuleNum == 8)
+                if (unicorn && unicornRuleNum == 8)
                 {
                     //play stage clear sound
                     unicornRuleNum++;
@@ -847,25 +856,25 @@ public class CruelSimpleton : MonoBehaviour {
     {
         statusLightButton.AddInteractionPunch(0.1f);
 
-        bool rule1Active = Rule1();
-        bool rule2Active = Rule2();
-        bool rule3Active = Rule3();
-        bool rule4Active = Rule4();
-        bool rule5Active = Rule5();
+        bool rule1Active = rule1;
+        bool rule2Active = rule2;
+        bool rule3Active = rule3;
+        bool rule4Active = rule4;
+        bool rule5Active = rule5;
         bool rule6Active = Rule6();
         bool rule7Active = Rule7();
         bool rule8Active = Rule8();
         bool rule9Active = Rule9();
 
-        bool unicorn1Active = Unicorn() && unicornRuleNum == 1;
-        bool unicorn2Active = Unicorn() && unicornRuleNum == 2;
-        bool unicorn3Active = Unicorn() && unicornRuleNum == 3;
-        bool unicorn4Active = Unicorn() && unicornRuleNum == 4;
-        bool unicorn5Active = Unicorn() && unicornRuleNum == 5;
-        bool unicorn6Active = Unicorn() && unicornRuleNum == 6;
-        bool unicorn7Active = Unicorn() && unicornRuleNum == 7;
-        bool unicorn8Active = Unicorn() && unicornRuleNum == 8;
-        bool unicorn9Active = Unicorn() && unicornRuleNum == 9;
+        bool unicorn1Active = unicorn && unicornRuleNum == 1;
+        bool unicorn2Active = unicorn && unicornRuleNum == 2;
+        bool unicorn3Active = unicorn && unicornRuleNum == 3;
+        bool unicorn4Active = unicorn && unicornRuleNum == 4;
+        bool unicorn5Active = unicorn && unicornRuleNum == 5;
+        bool unicorn6Active = unicorn && unicornRuleNum == 6;
+        bool unicorn7Active = unicorn && unicornRuleNum == 7;
+        bool unicorn8Active = unicorn && unicornRuleNum == 8;
+        bool unicorn9Active = unicorn && unicornRuleNum == 9;
 
         if ((rule2Active || unicorn2Active) && rule2CurrentIndex < 3)
         {
@@ -902,10 +911,10 @@ public class CruelSimpleton : MonoBehaviour {
 
     private void StatusLightRelease()
     {
-        bool unicorn2Active = Unicorn() && unicornRuleNum == 2;
-        bool unicorn3Active = Unicorn() && unicornRuleNum == 3;
+        bool unicorn2Active = unicorn && unicornRuleNum == 2;
+        bool unicorn3Active = unicorn && unicornRuleNum == 3;
 
-        if ((Rule2() || unicorn2Active) && holdingStatus)
+        if ((rule2 || unicorn2Active) && holdingStatus)
         {
             holdingStatus = false;
 
@@ -932,7 +941,7 @@ public class CruelSimpleton : MonoBehaviour {
             Debug.Log("Input is now: " + Rule2Answer());
         }
 
-        else if ((Rule3() || unicorn3Active) && holdingStatus)
+        else if ((rule3 || unicorn3Active) && holdingStatus)
         {
             holdingStatus = false;
 
@@ -1270,12 +1279,11 @@ public class CruelSimpleton : MonoBehaviour {
 
         if (ThreeTickGoneBy() || rule1Inputs.Count == rule1Answer.Count)
         {
-            Debug.Log("Submitted: " + string.Join(", ", rule1Inputs.Select(e => e.ToString()).ToArray()));
-            Debug.Log("Expected: " + string.Join(", ", rule1Answer.Select(e => e.ToString()).ToArray()));
+            Debug.LogFormat("[Cruel Simpleton #{0}] Submitted: {1}", ModuleId, string.Join(", ", rule1Inputs.Select(e => e.ToString()).ToArray()));
 
             if (Rule1Correct())
             {
-                if (Unicorn() && unicornRuleNum == 1)
+                if (unicorn && unicornRuleNum == 1)
                 {
                     //play stage clear sound
                     unicornRuleNum++;
